@@ -14,7 +14,7 @@ class Compiler(object):
     def compile(self, compile_config, src_path, output_dir):
         command = compile_config["compile_command"]
         exe_path = os.path.join(output_dir, compile_config["exe_name"])
-        command = command.format(src_path=src_path, exe_path=exe_path)
+        command = command.format(src_path=src_path, exe_dir=output_dir, exe_path=exe_path)
         compiler_out = os.path.join(output_dir, "compiler.out")
         _command = command.split(" ")
 

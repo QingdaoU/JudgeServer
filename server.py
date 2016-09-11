@@ -6,12 +6,13 @@ import hashlib
 import json
 import os
 import socket
-import time
+import shutil
 from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
 import _judger
 import psutil
 
+from judge_client import JudgeClient
 from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR
 from exception import SignatureVerificationFailed, CompileError, SPJCompileError
@@ -33,25 +34,26 @@ class InitSubmissionEnv(object):
 
 
 class JudgeServer(object):
-    def health_check(self):
+    def _health_check(self):
         ver = _judger.VERSION
         return {"hostname": socket.gethostname(),
                 "cpu": psutil.cpu_percent(),
+                "cpu_core": psutil.cpu_count(),
                 "memory": psutil.virtual_memory().percent,
                 "judger_version": ((ver >> 16) & 0xff, (ver >> 8) & 0xff, ver & 0xff)}
 
     def pong(self):
-        return make_signature(token=self.token, **self.health_check())
+        return make_signature(token=self._token, **self._health_check())
 
     @property
-    def token(self):
+    def _token(self):
         t = os.getenv("judger_token")
         if not t:
             raise SignatureVerificationFailed("token not set")
         return hashlib.sha256(t).hexdigest()
 
     def judge(self, data, signature, timestamp):
-        check_signature(token=self.token, data=data, signature=signature, timestamp=timestamp)
+        # check_signature(token=self._token, data=data, signature=signature, timestamp=timestamp)
         ret = {"code": None, "data": None}
         try:
             ret["data"] = self._judge(**json.loads(data))
@@ -59,11 +61,13 @@ class JudgeServer(object):
             ret["code"] = e.__class__.__name__
             ret["data"] = e.message
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             ret["code"] = "ServerError"
-            ret["data"] = e.message
-        return make_signature(token=self.token, **ret)
+            ret["data"] = ": ".join([e.__class__.__name__, e.message])
+        return make_signature(token=self._token, **ret)
 
-    def _judge(self, language_config, submission_id, src, time_limit, memory_limit, test_case_id):
+    def _judge(self, language_config, submission_id, src, max_cpu_time, max_memory, test_case_id):
         # init
         compile_config = language_config["compile"]
         spj_compile_config = language_config.get("spj_compile")
@@ -80,9 +84,16 @@ class JudgeServer(object):
                                           src_path=src_path,
                                           output_dir=submission_dir)
 
+            judge_client = JudgeClient(run_config=language_config["run"],
+                                       exe_path=exe_path,
+                                       max_cpu_time=max_cpu_time,
+                                       max_memory=max_memory,
+                                       test_case_id=test_case_id)
+            return judge_client.run()
+
             if spj_compile_config:
-                spj_compile_config["src_name"] %= spj_compile_config["version"]
-                spj_compile_config["exe_name"] %= spj_compile_config["version"]
+                spj_compile_config["src_name"].format(spj_version=spj_compile_config["version"])
+                spj_compile_config["exe_name"].format(spj_version=spj_compile_config["version"])
 
                 spj_src_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["src_name"])
 
@@ -102,12 +113,13 @@ class JudgeServer(object):
                     # turn common CompileError into SPJCompileError
                     except CompileError as e:
                         raise SPJCompileError(e.message)
+            return exe_path
 
 
-class AsyncXMLRPCServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
+class RPCServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
     pass
 
 
-server = AsyncXMLRPCServer(('0.0.0.0', 8080), SimpleXMLRPCRequestHandler, allow_none=True)
+server = RPCServer(('0.0.0.0', 8080), SimpleXMLRPCRequestHandler, allow_none=True)
 server.register_instance(JudgeServer())
 server.serve_forever()

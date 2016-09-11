@@ -11,3 +11,7 @@ class SPJCompileError(CompileError):
 
 class SignatureVerificationFailed(Exception):
     pass
+
+
+class JudgeClientError(Exception):
+    pass
