@@ -120,6 +120,10 @@ class RPCServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
     pass
 
 
+if not os.environ.get("judger_token"):
+    print "judger_token not set"
+    exit(-1)
+
 server = RPCServer(('0.0.0.0', 8080), SimpleXMLRPCRequestHandler, allow_none=True)
 server.register_instance(JudgeServer())
 server.serve_forever()
