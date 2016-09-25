@@ -45,19 +45,19 @@ class JudgeClient(object):
         in_file = os.path.join(self._test_case_dir, str(test_case_file_id) + ".in")
         out_file = os.path.join(self._test_case_dir, str(test_case_file_id) + ".out")
 
-        command = self._run_config["command"].format(exe_path=self._exe_path, max_memory=self._max_memory)
+        command = self._run_config["command"].format(exe_path=self._exe_path, max_memory=self._max_memory).split(" ")
 
         run_result = _judger.run(max_cpu_time=self._max_cpu_time,
                                  max_real_time=self._max_real_time,
                                  max_memory=self._max_memory,
                                  max_output_size=1024 * 1024 * 1024,
                                  max_process_number=5,
-                                 exe_path=command[0],
+                                 exe_path=command[0].encode("utf-8"),
                                  input_path=in_file,
                                  output_path=out_file,
                                  error_path=out_file,
                                  args=[item.encode("utf-8") for item in command[1::]],
-                                 env=[("PATH" + os.getenv("PATH")).encode("utf-8")],
+                                 env=[("PATH=" + os.getenv("PATH")).encode("utf-8")],
                                  log_path=JUDGER_RUN_LOG_PATH,
                                  seccomp_rule_so_path=self._seccomp_rule_path(self._run_config["seccomp_rule"]),
                                  uid=LOW_PRIVILEDGE_UID,
