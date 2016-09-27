@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import unicode_literals
 import hashlib
 import json
 import time
@@ -19,7 +20,8 @@ c_lang_config = {
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": "c_cpp"
+        "seccomp_rule": "c_cpp",
+        "max_process_number": 5
     },
     "spj_compile": {
         "src_name": "spj-{spj_version}.c",
@@ -43,6 +45,11 @@ java_lang_config = {
         "max_real_time": 5000,
         "max_memory": -1,
         "compile_command": "/usr/bin/javac {src_path} -d {exe_dir} -encoding UTF8"
+    },
+    "run": {
+        "command": "/usr/bin/java -cp {exe_dir} -Xss1M -XX:MaxPermSize=16M -XX:PermSize=8M -Xms16M -Xmx{max_memory}k -Djava.awt.headless=true Main",
+        "seccomp_rule": None,
+        "max_process_number": -1
     }
 }
 
@@ -57,18 +64,18 @@ token = hashlib.sha256("token").hexdigest()
 
 def judge():
     data = make_signature(token=token,
-                          language_config=c_lang_config,
+                          language_config=java_lang_config,
                           submission_id=submission_id,
-                          src="#include<stdio.h>\nint main(){//哈哈哈哈\nwhile(1);return 0;}",
-                          max_cpu_time=1000, max_memory=1000 * 1024 * 1024,
+                          src="\nimport java.util.Scanner;\npublic class Main{\n    public static void main(String[] args){\n        Scanner in=new Scanner(System.in);\n        int a=in.nextInt();\n        int b=in.nextInt();\n        System.out.println((a+b));  \n    }\n}",
+                          max_cpu_time=1000, max_memory=1024 * 1024 * 1024,
                           test_case_id="d28280c6f3c5ddeadfecc3956a52da3a")
-    r = requests.post("http://192.168.99.100:8080/judge", data=json.dumps(data), headers={"content-type": "application/json"})
-    print r.text
+    r = requests.post("http://192.168.99.100:8080/judge", data=json.dumps(data))
+    print r.json()
 
 
 def ping():
-    r = requests.post("http://192.168.99.100:8080/ping", data=json.dumps({}), headers={"content-type": "application/json"})
-    print r.text
+    r = requests.post("http://192.168.99.100:8080/ping", data=json.dumps({}))
+    print r.json()
 
 ping()
 judge()

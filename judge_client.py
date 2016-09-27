@@ -16,7 +16,7 @@ def _run(instance, test_case_file_id):
 
 
 class JudgeClient(object):
-    def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_id):
+    def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_id, submission_dir):
         self._run_config = run_config
         self._exe_path = exe_path
         self._max_cpu_time = max_cpu_time
@@ -24,6 +24,7 @@ class JudgeClient(object):
         self._max_real_time = self._max_cpu_time * 3
         self._test_case_id = test_case_id
         self._test_case_dir = os.path.join(TEST_CASE_DIR, test_case_id)
+        self._submission_dir = submission_dir
 
         self._pool = Pool(processes=psutil.cpu_count())
         self._test_case_info = self._load_test_case_info()
@@ -43,15 +44,15 @@ class JudgeClient(object):
 
     def _judge_one(self, test_case_file_id):
         in_file = os.path.join(self._test_case_dir, str(test_case_file_id) + ".in")
-        out_file = os.path.join(self._test_case_dir, str(test_case_file_id) + ".out")
+        out_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
 
-        command = self._run_config["command"].format(exe_path=self._exe_path, max_memory=self._max_memory).split(" ")
+        command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path), max_memory=self._max_memory / 1024).split(" ")
 
         run_result = _judger.run(max_cpu_time=self._max_cpu_time,
                                  max_real_time=self._max_real_time,
                                  max_memory=self._max_memory,
                                  max_output_size=1024 * 1024 * 1024,
-                                 max_process_number=5,
+                                 max_process_number=self._run_config["max_process_number"],
                                  exe_path=command[0].encode("utf-8"),
                                  input_path=in_file,
                                  output_path=out_file,

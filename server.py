@@ -84,7 +84,8 @@ class JudgeServer(object):
                                        exe_path=exe_path,
                                        max_cpu_time=max_cpu_time,
                                        max_memory=max_memory,
-                                       test_case_id=test_case_id)
+                                       test_case_id=test_case_id,
+                                       submission_dir=submission_dir)
             run_result = judge_client.run()
 
             if spj_compile_config:
@@ -115,15 +116,15 @@ class JudgeServer(object):
             data = json.loads(web.data())
             print web.ctx["path"]
             if web.ctx["path"] == "/judge":
-                return self.judge(**data)
+                return json.dumps(self.judge(**data))
             if web.ctx["path"] == "/ping":
-                return self.pong()
+                return json.dumps(self.pong())
             return {"err": "invalid-method", "data": None}
         except Exception as e:
             ret = dict()
             ret["err"] = "ServerError"
             ret["data"] = ": ".join([e.__class__.__name__, e.message])
-            return ret
+            return json.dumps(ret)
 
 
 urls = (
