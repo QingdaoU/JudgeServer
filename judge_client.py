@@ -62,6 +62,7 @@ class JudgeClient(object):
                                  seccomp_rule_so_path=self._seccomp_rule_path(self._run_config["seccomp_rule"]),
                                  uid=LOW_PRIVILEDGE_UID,
                                  gid=LOW_PRIVILEDGE_GID)
+        run_result["test_case"] = test_case_file_id
         return run_result
 
     def run(self):

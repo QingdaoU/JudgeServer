@@ -1,33 +1,11 @@
 # coding=utf-8
 import hashlib
-import httplib
 import json
 import time
-import xmlrpclib
 
-from utils import make_signature, check_signature
+import requests
 
-
-class TimeoutHTTPConnection(httplib.HTTPConnection):
-    def __init__(self, host, timeout=10):
-        httplib.HTTPConnection.__init__(self, host, timeout=timeout)
-
-
-class TimeoutTransport(xmlrpclib.Transport):
-    def __init__(self, timeout=10, *args, **kwargs):
-        xmlrpclib.Transport.__init__(self, *args, **kwargs)
-        self.timeout = timeout
-
-    def make_connection(self, host):
-        conn = TimeoutHTTPConnection(host, self.timeout)
-        return conn
-
-
-class TimeoutServerProxy(xmlrpclib.ServerProxy):
-    def __init__(self, uri, timeout=10, *args, **kwargs):
-        kwargs['transport'] = TimeoutTransport(timeout=timeout, use_datetime=kwargs.get('use_datetime', 0))
-        xmlrpclib.ServerProxy.__init__(self, uri, *args, **kwargs)
-
+from utils import make_signature
 
 c_lang_config = {
     "name": "c",
@@ -69,34 +47,28 @@ java_lang_config = {
 }
 
 submission_id = str(int(time.time()))
-spj_config = c_lang_config["spj_compile"]
-
-s = TimeoutServerProxy("http://192.168.99.100:8080", timeout=30, allow_none=True)
 
 c_config = c_lang_config
-c_config["spj_compile"]["version"] = "1025"
-c_config["spj_compile"]["src"] = "#include<stdio.h>\nint main(){//哈哈哈哈\nreturn 0;}"
-
+c_config["spj_compile"]["version"] = "1027"
+c_config["spj_compile"]["src"] = "#include<stdio.h>\nint main(){//哈哈哈哈\nwhile(1);return 0;}"
 
 token = hashlib.sha256("token").hexdigest()
 
 
-def pong():
-    data, signature, timestamp = s.pong()
-    # check_signature(token=token, data=data, signature=signature, timestamp=timestamp)
-    print json.loads(data)
-
-
 def judge():
-    data, signature, timestamp = s.judge(*make_signature(token=token,
-                                                         language_config=c_lang_config,
-                                                         submission_id=submission_id,
-                                                         src="#include<stdio.h>\nint main(){//哈哈哈哈\nreturn 0;}",
-                                                         max_cpu_time=1000, max_memory=1000, test_case_id="1"))
+    data = make_signature(token=token,
+                          language_config=c_lang_config,
+                          submission_id=submission_id,
+                          src="#include<stdio.h>\nint main(){//哈哈哈哈\nwhile(1);return 0;}",
+                          max_cpu_time=1000, max_memory=1000 * 1024 * 1024,
+                          test_case_id="d28280c6f3c5ddeadfecc3956a52da3a")
+    r = requests.post("http://192.168.99.100:8080/judge", data=json.dumps(data), headers={"content-type": "application/json"})
+    print r.text
 
-    # check_signature(token=token, data=data, signature=signature, timestamp=timestamp)
-    print json.loads(data)
 
+def ping():
+    r = requests.post("http://192.168.99.100:8080/ping", data=json.dumps({}), headers={"content-type": "application/json"})
+    print r.text
 
-pong()
+ping()
 judge()

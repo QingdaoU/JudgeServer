@@ -13,4 +13,4 @@ JUDGER_RUN_LOG_PATH = os.path.join(JUDGER_WORKSPACE_BASE, "judger.log")
 LOW_PRIVILEDGE_UID = pwd.getpwnam("nobody").pw_uid
 LOW_PRIVILEDGE_GID = grp.getgrnam("nogroup").gr_gid
 
-TEST_CASE_DIR = "/var/testcase"
+TEST_CASE_DIR = "/test_case"

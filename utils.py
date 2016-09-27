@@ -12,7 +12,7 @@ def make_signature(**kwargs):
     token = kwargs.pop("token")
     data = json.dumps(kwargs)
     timestamp = int(time.time())
-    return data, hashlib.sha256(data + str(timestamp) + token).hexdigest(), timestamp
+    return {"data": data, "signature": hashlib.sha256(data + str(timestamp) + token).hexdigest(), "timestamp": timestamp}
 
 
 def check_signature(token, data, signature, timestamp):

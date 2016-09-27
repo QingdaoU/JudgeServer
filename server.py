@@ -1,14 +1,13 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-import SocketServer
 import hashlib
 import json
 import os
 import socket
 import shutil
-from SimpleXMLRPCServer import SimpleXMLRPCServer, SimpleXMLRPCRequestHandler
 
+import web
 import _judger
 import psutil
 
@@ -29,8 +28,7 @@ class InitSubmissionEnv(object):
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-        # shutil.rmtree(self.path, ignore_errors=True)
+        shutil.rmtree(self.path, ignore_errors=True)
 
 
 class JudgeServer(object):
@@ -54,16 +52,14 @@ class JudgeServer(object):
 
     def judge(self, data, signature, timestamp):
         # check_signature(token=self._token, data=data, signature=signature, timestamp=timestamp)
-        ret = {"code": None, "data": None}
+        ret = {"err": None, "data": None}
         try:
             ret["data"] = self._judge(**json.loads(data))
         except (CompileError, SPJCompileError, SignatureVerificationFailed) as e:
-            ret["code"] = e.__class__.__name__
+            ret["err"] = e.__class__.__name__
             ret["data"] = e.message
         except Exception as e:
-            import traceback
-            traceback.print_exc()
-            ret["code"] = "ServerError"
+            ret["err"] = "ServerError"
             ret["data"] = ": ".join([e.__class__.__name__, e.message])
         return make_signature(token=self._token, **ret)
 
@@ -89,20 +85,19 @@ class JudgeServer(object):
                                        max_cpu_time=max_cpu_time,
                                        max_memory=max_memory,
                                        test_case_id=test_case_id)
-            return judge_client.run()
+            run_result = judge_client.run()
 
             if spj_compile_config:
-                spj_compile_config["src_name"].format(spj_version=spj_compile_config["version"])
-                spj_compile_config["exe_name"].format(spj_version=spj_compile_config["version"])
+                spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_compile_config["version"])
+                spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_compile_config["version"])
 
                 spj_src_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["src_name"])
+                spj_exe_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["exe_name"])
 
                 # if spj source code not found, then write it into file
                 if not os.path.exists(spj_src_path):
                     with open(spj_src_path, "w") as f:
                         f.write(spj_compile_config["src"].encode("utf-8"))
-
-                spj_exe_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["exe_name"])
 
                 # if spj exe file not found, then compile it
                 if not os.path.exists(spj_exe_path):
@@ -113,17 +108,35 @@ class JudgeServer(object):
                     # turn common CompileError into SPJCompileError
                     except CompileError as e:
                         raise SPJCompileError(e.message)
-            return exe_path
+            return run_result
+
+    def POST(self):
+        try:
+            data = json.loads(web.data())
+            print web.ctx["path"]
+            if web.ctx["path"] == "/judge":
+                return self.judge(**data)
+            if web.ctx["path"] == "/ping":
+                return self.pong()
+            return {"err": "invalid-method", "data": None}
+        except Exception as e:
+            ret = dict()
+            ret["err"] = "ServerError"
+            ret["data"] = ": ".join([e.__class__.__name__, e.message])
+            return ret
 
 
-class RPCServer(SocketServer.ThreadingMixIn, SimpleXMLRPCServer):
-    pass
+urls = (
+    "/judge", "JudgeServer",
+    "/ping", "JudgeServer"
+)
 
+app = web.application(urls, globals())
+wsgiapp = app.wsgifunc()
 
-if not os.environ.get("judger_token"):
-    print "judger_token not set"
-    exit(-1)
-
-server = RPCServer(('0.0.0.0', 8080), SimpleXMLRPCRequestHandler, allow_none=True)
-server.register_instance(JudgeServer())
-server.serve_forever()
+# gunicorn -w 4 -b 0.0.0.0:8080 server:wsgiapp
+if __name__ == "__main__":
+    if not os.environ.get("judger_token"):
+        print "judger_token not set"
+        exit(-1)
+    app.run()
