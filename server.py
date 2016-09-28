@@ -70,7 +70,6 @@ class JudgeServer(object):
     def judge(self, language_config, submission_id, src, max_cpu_time, max_memory, test_case_id):
         # init
         compile_config = language_config["compile"]
-        spj_compile_config = language_config.get("spj_compile")
 
         with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=submission_id) as submission_dir:
             src_path = os.path.join(submission_dir, compile_config["src_name"])

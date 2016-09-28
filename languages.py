@@ -13,8 +13,8 @@ c_lang_config = {
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": "c_cpp",
-        "max_process_number": 5
+        "seccomp_rule": None,
+        "max_process_number": -1
     }
 }
 
@@ -44,8 +44,8 @@ cpp_lang_config = {
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": "c_cpp",
-        "max_process_number": 5
+        "seccomp_rule": None,
+        "max_process_number": -1
     }
 }
 

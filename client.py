@@ -6,11 +6,10 @@ import time
 
 import requests
 
-from utils import make_signature
+from utils import make_signature, check_signature
 from languages import c_lang_config, c_lang_spj_config, cpp_lang_config, java_lang_config
 
 
-submission_id = str(int(time.time()))
 token = hashlib.sha256("token").hexdigest()
 
 c_src = r"""
@@ -31,7 +30,6 @@ using namespace std;
 int main()
 {
     int a,b;
-    while(1);
     cin >> a >> b;
     cout << a+b << endl;
     return 0;
@@ -51,21 +49,37 @@ public class Main{
 """
 
 
-def judge():
+def judge(src, language_config, submission_id):
     data = make_signature(token=token,
-                          language_config=java_lang_config,
+                          language_config=language_config,
                           submission_id=submission_id,
-                          src=java_src,
+                          src=src,
                           max_cpu_time=1000, max_memory=1024 * 1024 * 1024,
                           test_case_id="d28280c6f3c5ddeadfecc3956a52da3a")
     r = requests.post("http://123.57.151.42:11235/judge", data=json.dumps(data))
-    print r.json()
+    data = r.json()
+    check_signature(token=token, **data)
+    result = json.loads(data["data"])
+    if result["err"]:
+        return result["data"]
+    return json.loads(data["data"])["data"]
 
 
 def ping():
     data = make_signature(token=token)
     r = requests.post("http://123.57.151.42:11235/ping", data=json.dumps(data))
-    print r.json()
+    data = r.json()
 
-ping()
-judge()
+    check_signature(token=token, **data)
+    result = json.loads(data["data"])
+    if result["err"]:
+        return result["data"]
+    return json.loads(data["data"])["data"]
+
+
+print ping()
+print judge(c_src, c_lang_config, str(int(time.time())))
+time.sleep(2)
+print judge(cpp_src, cpp_lang_config, str(int(time.time())))
+time.sleep(2)
+print judge(java_src, java_lang_config, str(int(time.time())))
