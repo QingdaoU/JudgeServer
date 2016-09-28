@@ -44,7 +44,7 @@ class JudgeServer(object):
                 "judger_version": ((ver >> 16) & 0xff, (ver >> 8) & 0xff, ver & 0xff)}
 
     def pong(self):
-        return make_signature(token=self._token, **self._health_check())
+        return self._health_check()
 
     @property
     def _token(self):
@@ -92,16 +92,16 @@ class JudgeServer(object):
             run_result = judge_client.run()
             return run_result
 
-    def compile_spj(self, spj_compile_config, test_case_id):
-        spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_compile_config["version"])
-        spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_compile_config["version"])
+    def compile_spj(self, spj_version, src, spj_compile_config, test_case_id):
+        spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_version)
+        spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_version)
 
         spj_src_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["src_name"])
 
         # if spj source code not found, then write it into file
         if not os.path.exists(spj_src_path):
             with open(spj_src_path, "w") as f:
-                f.write(spj_compile_config["src"].encode("utf-8"))
+                f.write(src.encode("utf-8"))
         try:
             Compiler().compile(compile_config=spj_compile_config,
                                src_path=spj_src_path,
@@ -133,7 +133,7 @@ class JudgeServer(object):
 urls = (
     "/judge", "JudgeServer",
     "/ping", "JudgeServer",
-    "/compile_spj", "JudgerServer"
+    "/compile_spj", "JudgeServer"
 )
 
 if not os.environ.get("judger_token"):
