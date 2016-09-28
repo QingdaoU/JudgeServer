@@ -1,0 +1,10 @@
+judge_server:
+    image: judge_server
+    volumes:
+        - /data/test_case:/test_case
+        - /data/log:/log
+        - /data/JudgeServer:/code
+    environments:
+        - judger_token=PLEASE_REPLACE_TO_SECRET_TOKEN
+    ports:
+        - "0.0.0.0:11235:8080"
