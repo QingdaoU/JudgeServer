@@ -11,9 +11,6 @@ from languages import c_lang_config, c_lang_spj_config, cpp_lang_config, java_la
 
 
 submission_id = str(int(time.time()))
-
-c_config = c_lang_config
-
 token = hashlib.sha256("token").hexdigest()
 
 c_src = r"""
@@ -66,7 +63,8 @@ def judge():
 
 
 def ping():
-    r = requests.post("http://123.57.151.42:11235/ping", data=json.dumps({}))
+    data = make_signature(token=token)
+    r = requests.post("http://123.57.151.42:11235/ping", data=json.dumps(data))
     print r.json()
 
 ping()
