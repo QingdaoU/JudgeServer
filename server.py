@@ -132,12 +132,12 @@ urls = (
     "/ping", "JudgeServer"
 )
 
+if not os.environ.get("judger_token"):
+    raise SignatureVerificationFailed("token not set")
+
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()
 
 # gunicorn -w 4 -b 0.0.0.0:8080 server:wsgiapp
 if __name__ == "__main__":
-    if not os.environ.get("judger_token"):
-        print "judger_token not set"
-        exit(-1)
     app.run()
