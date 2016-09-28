@@ -4,18 +4,20 @@ from __future__ import unicode_literals
 import hashlib
 import json
 import os
-import socket
 import shutil
+import socket
 
-import web
 import _judger
 import psutil
+import web
 
-from judge_client import JudgeClient
 from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR
 from exception import SignatureVerificationFailed, CompileError, SPJCompileError
+from judge_client import JudgeClient
 from utils import make_signature, check_signature
+
+DEBUG = os.environ.get("judger_debug") == "1"
 
 
 class InitSubmissionEnv(object):
@@ -28,7 +30,8 @@ class InitSubmissionEnv(object):
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        shutil.rmtree(self.path, ignore_errors=True)
+        if not DEBUG:
+            shutil.rmtree(self.path, ignore_errors=True)
 
 
 class JudgeServer(object):
@@ -50,11 +53,12 @@ class JudgeServer(object):
             raise SignatureVerificationFailed("token not set")
         return hashlib.sha256(t).hexdigest()
 
-    def judge(self, data, signature, timestamp):
-        # check_signature(token=self._token, data=data, signature=signature, timestamp=timestamp)
+    def entry(self, data, signature, timestamp, callback):
+        if not DEBUG:
+            check_signature(token=self._token, data=data, signature=signature, timestamp=timestamp)
         ret = {"err": None, "data": None}
         try:
-            ret["data"] = self._judge(**json.loads(data))
+            ret["data"] = callback(**json.loads(data))
         except (CompileError, SPJCompileError, SignatureVerificationFailed) as e:
             ret["err"] = e.__class__.__name__
             ret["data"] = e.message
@@ -63,7 +67,7 @@ class JudgeServer(object):
             ret["data"] = ": ".join([e.__class__.__name__, e.message])
         return make_signature(token=self._token, **ret)
 
-    def _judge(self, language_config, submission_id, src, max_cpu_time, max_memory, test_case_id):
+    def judge(self, language_config, submission_id, src, max_cpu_time, max_memory, test_case_id):
         # init
         compile_config = language_config["compile"]
         spj_compile_config = language_config.get("spj_compile")
@@ -87,39 +91,39 @@ class JudgeServer(object):
                                        test_case_id=test_case_id,
                                        submission_dir=submission_dir)
             run_result = judge_client.run()
-
-            if spj_compile_config:
-                spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_compile_config["version"])
-                spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_compile_config["version"])
-
-                spj_src_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["src_name"])
-                spj_exe_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["exe_name"])
-
-                # if spj source code not found, then write it into file
-                if not os.path.exists(spj_src_path):
-                    with open(spj_src_path, "w") as f:
-                        f.write(spj_compile_config["src"].encode("utf-8"))
-
-                # if spj exe file not found, then compile it
-                if not os.path.exists(spj_exe_path):
-                    try:
-                        spj_exe_path = Compiler().compile(compile_config=spj_compile_config,
-                                                          src_path=spj_src_path,
-                                                          output_dir=os.path.join(TEST_CASE_DIR, test_case_id))
-                    # turn common CompileError into SPJCompileError
-                    except CompileError as e:
-                        raise SPJCompileError(e.message)
             return run_result
+
+    def compile_spj(self, spj_compile_config, test_case_id):
+        spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_compile_config["version"])
+        spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_compile_config["version"])
+
+        spj_src_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["src_name"])
+
+        # if spj source code not found, then write it into file
+        if not os.path.exists(spj_src_path):
+            with open(spj_src_path, "w") as f:
+                f.write(spj_compile_config["src"].encode("utf-8"))
+        try:
+            Compiler().compile(compile_config=spj_compile_config,
+                               src_path=spj_src_path,
+                               output_dir=os.path.join(TEST_CASE_DIR, test_case_id))
+        # turn common CompileError into SPJCompileError
+        except CompileError as e:
+            raise SPJCompileError(e.message)
+        return "success"
 
     def POST(self):
         try:
             data = json.loads(web.data())
-            print web.ctx["path"]
             if web.ctx["path"] == "/judge":
-                return json.dumps(self.judge(**data))
-            if web.ctx["path"] == "/ping":
-                return json.dumps(self.pong())
-            return {"err": "invalid-method", "data": None}
+                callback = self.judge
+            elif web.ctx["path"] == "/ping":
+                callback = self.pong
+            elif web.ctx["path"] == "/compile_spj":
+                callback = self.compile_spj
+            else:
+                return {"err": "invalid-method", "data": None}
+            return json.dumps(self.entry(data=data["data"], signature=data["signature"], timestamp=data["timestamp"], callback=callback))
         except Exception as e:
             ret = dict()
             ret["err"] = "ServerError"
@@ -129,7 +133,8 @@ class JudgeServer(object):
 
 urls = (
     "/judge", "JudgeServer",
-    "/ping", "JudgeServer"
+    "/ping", "JudgeServer",
+    "/compile_spj", "JudgerServer"
 )
 
 if not os.environ.get("judger_token"):

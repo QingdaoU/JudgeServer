@@ -17,7 +17,7 @@ def make_signature(**kwargs):
 
 def check_signature(token, data, signature, timestamp):
     ts = int(time.time())
-    if abs(timestamp - ts) > 5:
+    if abs(timestamp - ts) > 10:
         raise SignatureVerificationFailed("Timestamp interval is too long")
 
     if hashlib.sha256(data + str(timestamp) + token).hexdigest() != signature:

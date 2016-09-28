@@ -4,7 +4,7 @@ judge_server:
         - /data/test_case:/test_case
         - /data/log:/log
         - /data/JudgeServer:/code
-    environments:
+    environment:
         - judger_token=PLEASE_REPLACE_TO_SECRET_TOKEN
     ports:
         - "0.0.0.0:11235:8080"
