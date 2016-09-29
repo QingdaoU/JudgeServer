@@ -13,9 +13,8 @@ import web
 
 from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR
-from exception import SignatureVerificationFailed, CompileError, SPJCompileError
+from exception import TokenVerificationFailed, CompileError, SPJCompileError
 from judge_client import JudgeClient
-from utils import make_signature, check_signature
 
 DEBUG = os.environ.get("judger_debug") == "1"
 
@@ -50,22 +49,8 @@ class JudgeServer(object):
     def _token(self):
         t = os.getenv("judger_token")
         if not t:
-            raise SignatureVerificationFailed("token not set")
+            raise TokenVerificationFailed("token not set")
         return hashlib.sha256(t).hexdigest()
-
-    def entry(self, data, signature, timestamp, callback):
-        if not DEBUG:
-            check_signature(token=self._token, data=data, signature=signature, timestamp=timestamp)
-        ret = {"err": None, "data": None}
-        try:
-            ret["data"] = callback(**json.loads(data))
-        except (CompileError, SPJCompileError, SignatureVerificationFailed) as e:
-            ret["err"] = e.__class__.__name__
-            ret["data"] = e.message
-        except Exception as e:
-            ret["err"] = "ServerError"
-            ret["data"] = ": ".join([e.__class__.__name__, e.message])
-        return make_signature(token=self._token, **ret)
 
     def judge(self, language_config, submission_id, src, max_cpu_time, max_memory, test_case_id):
         # init
@@ -112,8 +97,15 @@ class JudgeServer(object):
         return "success"
 
     def POST(self):
+        token = web.ctx.env.get("HTTP_X_JUDGE_SERVER_TOKEN", None)
         try:
-            data = json.loads(web.data())
+            if token != self._token:
+                raise TokenVerificationFailed("invalid token")
+            if web.data():
+                data = json.loads(web.data())
+            else:
+                data = {}
+
             if web.ctx["path"] == "/judge":
                 callback = self.judge
             elif web.ctx["path"] == "/ping":
@@ -121,12 +113,12 @@ class JudgeServer(object):
             elif web.ctx["path"] == "/compile_spj":
                 callback = self.compile_spj
             else:
-                return {"err": "invalid-method", "data": None}
-            return json.dumps(self.entry(data=data["data"], signature=data["signature"], timestamp=data["timestamp"], callback=callback))
+                return json.dumps({"err": "invalid-method", "data": None})
+            return json.dumps({"err": None, "data": callback(**data)})
         except Exception as e:
             ret = dict()
-            ret["err"] = "ServerError"
-            ret["data"] = ": ".join([e.__class__.__name__, e.message])
+            ret["err"] = e.__class__.__name__
+            ret["data"] = e.message
             return json.dumps(ret)
 
 
@@ -137,7 +129,7 @@ urls = (
 )
 
 if not os.environ.get("judger_token"):
-    raise SignatureVerificationFailed("token not set")
+    raise TokenVerificationFailed("token not set")
 
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()

@@ -9,7 +9,7 @@ class SPJCompileError(CompileError):
     pass
 
 
-class SignatureVerificationFailed(Exception):
+class TokenVerificationFailed(Exception):
     pass
 
 
