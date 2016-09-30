@@ -4,6 +4,7 @@ import _judger
 import psutil
 import os
 import json
+import hashlib
 
 from multiprocessing import Pool
 
@@ -42,11 +43,21 @@ class JudgeClient(object):
         if rule_name:
             return "/usr/lib/judger/librule_{rule_name}.so".format(rule_name=rule_name).encode("utf-8")
 
+    def _compare_output(self, test_case_file_id):
+        user_output_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
+        try:
+            f = open(user_output_file, "r")
+        except Exception:
+            return None, False
+        output_md5 = hashlib.md5(f.read().rstrip()).hexdigest()
+        return output_md5, output_md5 == self._test_case_info["test_cases"][str(test_case_file_id)]["striped_output_md5"]
+
     def _judge_one(self, test_case_file_id):
         in_file = os.path.join(self._test_case_dir, str(test_case_file_id) + ".in")
         out_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
 
-        command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path), max_memory=self._max_memory / 1024).split(" ")
+        command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path),
+                                                     max_memory=self._max_memory / 1024).split(" ")
 
         run_result = _judger.run(max_cpu_time=self._max_cpu_time,
                                  max_real_time=self._max_real_time,
@@ -64,6 +75,15 @@ class JudgeClient(object):
                                  uid=LOW_PRIVILEDGE_UID,
                                  gid=LOW_PRIVILEDGE_GID)
         run_result["test_case"] = test_case_file_id
+
+        # if progress exited normally, then we should check output result
+        run_result["output_md5"] = None
+        if run_result["result"] == 0:
+            run_result["output_md5"], is_ac = self._compare_output(test_case_file_id)
+            # -1 == Wrong Answer
+            if not is_ac:
+                run_result["result"] = -1
+
         return run_result
 
     def run(self):
