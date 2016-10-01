@@ -1,7 +1,7 @@
 judge_server:
     image: judge_server
     volumes:
-        - /data/test_case:/test_case
+        - /data/JudgeServer/test/test_case:/test_case
         - /data/log:/log
         - /data/JudgeServer:/code
     environment:

@@ -31,18 +31,20 @@ class JudgeServerClient(object):
     def ping(self):
         return self._request(self.server_base_url + "/ping")
 
-    def judge(self, src, language_config, submission_id, max_cpu_time, max_memory, test_case_id):
+    def judge(self, src, language_config, submission_id, max_cpu_time, max_memory, test_case_id, spj_version=None, spj_config=None):
         data = {"language_config": language_config,
                 "submission_id": submission_id,
                 "src": src,
                 "max_cpu_time": max_cpu_time,
                 "max_memory": max_memory,
-                "test_case_id": test_case_id}
+                "test_case_id": test_case_id,
+                "spj_version": spj_version,
+                "spj_config": spj_config}
         return self._request(self.server_base_url + "/judge", data=data)
 
-    def compile_spj(self, src, spj_version, spj_config, test_case_id):
+    def compile_spj(self, src, spj_version, spj_compile_config, test_case_id):
         data = {"src": src, "spj_version": spj_version,
-                "spj_compile_config": spj_config, "test_case_id": test_case_id}
+                "spj_compile_config": spj_compile_config, "test_case_id": test_case_id}
         return self._request(self.server_base_url + "/compile_spj", data=data)
 
 
@@ -56,6 +58,13 @@ if __name__ == "__main__":
         scanf("%d%d", &a, &b);
         printf("%d\n", a+b);
         return 0;
+    }
+    """
+
+    c_spj_src = r"""
+    #include <stdio.h>
+    int main(){
+        return 1;
     }
     """
 
@@ -87,14 +96,22 @@ if __name__ == "__main__":
 
     client = JudgeServerClient(token="token", server_base_url="http://123.57.151.42:11235")
     print client.ping(), "\n\n"
-    print client.compile_spj(src=c_src, spj_version="4", spj_config=c_lang_config["spj"],
-                             test_case_id="d8c460de943189a83bad166ec96d975d"), "\n\n"
+    print client.compile_spj(src=c_spj_src, spj_version="1", spj_compile_config=c_lang_config["spj_compile"],
+                             test_case_id="spj"), "\n\n"
 
-    print client.judge(src=cpp_src, language_config=cpp_lang_config, submission_id=str(int(time.time())),
+    print client.judge(src=c_src, language_config=c_lang_config, submission_id=str(int(time.time())),
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
-                       test_case_id="d8c460de943189a83bad166ec96d975d"), "\n\n"
-    time.sleep(2)
-    print client.judge(src=java_src, language_config=java_lang_config, submission_id=str(int(time.time())),
+                       test_case_id="normal"), "\n\n"
+
+    print client.judge(src=cpp_src, language_config=cpp_lang_config, submission_id="1",
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
-                       test_case_id="d8c460de943189a83bad166ec96d975d"), "\n\n"
-    time.sleep(2)
+                       test_case_id="normal"), "\n\n"
+
+    print client.judge(src=java_src, language_config=java_lang_config, submission_id="2",
+                       max_cpu_time=1000, max_memory=1024 * 1024 * 1024,
+                       test_case_id="normal"), "\n\n"
+
+    print client.judge(src=c_src, language_config=c_lang_config, submission_id="3",
+                       max_cpu_time=1000, max_memory=1024 * 1024 * 128,
+                       test_case_id="spj",
+                       spj_version="1", spj_config=c_lang_config["spj_config"]), "\n\n"

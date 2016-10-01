@@ -38,12 +38,9 @@ class Compiler(object):
         if result["result"] != _judger.RESULT_SUCCESS:
             with open(compiler_out) as f:
                 error = f.read().strip()
+            os.remove(compiler_out)
             if error:
                 raise CompileError(error)
-
-            # 如果是spj的话, 不要在test_case文件夹中留下这个文件
-            os.remove(compiler_out)
-
             raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
 
         return exe_path

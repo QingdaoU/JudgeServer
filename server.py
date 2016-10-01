@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import socket
+import logging
 
 import _judger
 import psutil
@@ -52,11 +53,12 @@ class JudgeServer(object):
             raise TokenVerificationFailed("token not set")
         return hashlib.sha256(t).hexdigest()
 
-    def judge(self, language_config, submission_id, src, max_cpu_time, max_memory, test_case_id):
+    def judge(self, language_config, submission_id, src, max_cpu_time, max_memory, test_case_id,
+              spj_version=None, spj_config=None):
         # init
         compile_config = language_config["compile"]
 
-        with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=submission_id) as submission_dir:
+        with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
             src_path = os.path.join(submission_dir, compile_config["src_name"])
 
             # write source code into file
@@ -72,8 +74,10 @@ class JudgeServer(object):
                                        exe_path=exe_path,
                                        max_cpu_time=max_cpu_time,
                                        max_memory=max_memory,
-                                       test_case_id=test_case_id,
-                                       submission_dir=submission_dir)
+                                       test_case_id=str(test_case_id),
+                                       submission_dir=submission_dir,
+                                       spj_version=str(spj_version),
+                                       spj_config=spj_config)
             run_result = judge_client.run()
             return run_result
 
@@ -116,6 +120,7 @@ class JudgeServer(object):
                 return json.dumps({"err": "invalid-method", "data": None})
             return json.dumps({"err": None, "data": callback(**data)})
         except Exception as e:
+            logging.exception(e)
             ret = dict()
             ret["err"] = e.__class__.__name__
             ret["data"] = e.message

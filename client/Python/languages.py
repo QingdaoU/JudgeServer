@@ -15,13 +15,18 @@ c_lang_config = {
         "seccomp_rule": None,
         "max_process_number": -1
     },
-    "spj": {
+    "spj_compile": {
         "src_name": "spj-{spj_version}.c",
         "exe_name": "spj-{spj_version}",
         "max_cpu_time": 10000,
         "max_real_time": 20000,
         "max_memory": 1024 * 1024 * 1024,
         "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c99 {src_path} -lm -o {exe_path}"
+    },
+    "spj_config": {
+        "exe_name": "spj-{spj_version}",
+        "command": "{exe_path} {in_file_path} {user_out_file_path}",
+        "seccomp_rule": "c_cpp"
     }
 }
 
