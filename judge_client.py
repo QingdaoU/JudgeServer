@@ -57,7 +57,7 @@ class JudgeClient(object):
         try:
             f = open(user_output_file, "r")
         except Exception:
-            return None, False
+            raise JudgeClientError("output not found")
         output_md5 = hashlib.md5(f.read().rstrip()).hexdigest()
         return output_md5, output_md5 == self._test_case_info["test_cases"][str(test_case_file_id)]["striped_output_md5"]
 
@@ -80,7 +80,6 @@ class JudgeClient(object):
                              seccomp_rule_so_path=self._seccomp_rule_path(self._spj_config["seccomp_rule"]),
                              uid=LOW_PRIVILEDGE_UID,
                              gid=LOW_PRIVILEDGE_GID)
-        print result
 
         if result["result"] == _judger.RESULT_SUCCESS or \
                 (result["result"] == _judger.RESULT_RUNTIME_ERROR and result["exit_code"] in [SPJ_WA, SPJ_ERROR]):
@@ -119,8 +118,6 @@ class JudgeClient(object):
                 if not self._spj_config or not self._spj_version:
                     raise JudgeClientError("spj_config or spj_version not set")
                 spj_result = self._spj(in_file_path=in_file, user_out_file_path=out_file)
-
-                print "spj_result", spj_result
 
                 if spj_result == SPJ_WA:
                     run_result["result"] = WA

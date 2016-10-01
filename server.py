@@ -14,7 +14,7 @@ import web
 
 from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR
-from exception import TokenVerificationFailed, CompileError, SPJCompileError
+from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
 
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -25,13 +25,21 @@ class InitSubmissionEnv(object):
         self.path = os.path.join(judger_workspace, submission_id)
 
     def __enter__(self):
-        os.mkdir(self.path)
-        os.chmod(self.path, 0777)
+        try:
+            os.mkdir(self.path)
+            os.chmod(self.path, 0777)
+        except Exception as e:
+            logging.exception(e)
+            raise JudgeClientError("failed to create runtime dir")
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if not DEBUG:
-            shutil.rmtree(self.path, ignore_errors=True)
+            try:
+                shutil.rmtree(self.path)
+            except Exception as e:
+                logging.exception(e)
+                raise JudgeClientError("failed to clean runtime dir")
 
 
 class JudgeServer(object):
@@ -106,7 +114,11 @@ class JudgeServer(object):
             if token != self._token:
                 raise TokenVerificationFailed("invalid token")
             if web.data():
-                data = json.loads(web.data())
+                try:
+                    data = json.loads(web.data())
+                except Exception as e:
+                    logging.info(web.data())
+                    return {"ret": "ServerError", "data": "invalid json"}
             else:
                 data = {}
 
@@ -117,7 +129,7 @@ class JudgeServer(object):
             elif web.ctx["path"] == "/compile_spj":
                 callback = self.compile_spj
             else:
-                return json.dumps({"err": "invalid-method", "data": None})
+                return json.dumps({"err": "InvalidMethod", "data": None})
             return json.dumps({"err": None, "data": callback(**data)})
         except Exception as e:
             logging.exception(e)
@@ -135,6 +147,9 @@ urls = (
 
 if not os.environ.get("judger_token"):
     raise TokenVerificationFailed("token not set")
+
+if DEBUG:
+    logging.info("DEBUG=ON")
 
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()
