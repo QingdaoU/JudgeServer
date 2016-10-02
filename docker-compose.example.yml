@@ -1,9 +1,10 @@
 judge_server:
     image: judge_server
+    cpu_quota: 90000
     volumes:
         - /data/JudgeServer/test/test_case:/test_case
         - /data/log:/log
-        - /data/JudgeServer:/code
+        - /data/JudgeServer:/code:ro
     environment:
         - judger_token=PLEASE_REPLACE_TO_SECRET_TOKEN
     ports:
