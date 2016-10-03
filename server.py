@@ -5,17 +5,16 @@ import hashlib
 import json
 import os
 import shutil
-import socket
 import logging
 
-import _judger
-import psutil
 import web
 
 from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR
 from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
+from utils import server_info, get_token
+
 
 DEBUG = os.environ.get("judger_debug") == "1"
 
@@ -43,20 +42,14 @@ class InitSubmissionEnv(object):
 
 
 class JudgeServer(object):
-    def _health_check(self):
-        ver = _judger.VERSION
-        return {"hostname": socket.gethostname(),
-                "cpu": psutil.cpu_percent(),
-                "cpu_core": psutil.cpu_count(),
-                "memory": psutil.virtual_memory().percent,
-                "judger_version": ((ver >> 16) & 0xff, (ver >> 8) & 0xff, ver & 0xff)}
-
     def pong(self):
-        return self._health_check()
+        data = server_info()
+        data["action"] = "pong"
+        return data
 
     @property
     def _token(self):
-        t = os.getenv("judger_token")
+        t = get_token()
         if not t:
             raise TokenVerificationFailed("token not set")
         return hashlib.sha256(t).hexdigest()
@@ -145,11 +138,12 @@ urls = (
     "/compile_spj", "JudgeServer"
 )
 
-if not os.environ.get("judger_token"):
-    raise TokenVerificationFailed("token not set")
 
 if DEBUG:
     logging.info("DEBUG=ON")
+
+# check token
+JudgeServer()._token
 
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()

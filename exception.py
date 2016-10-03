@@ -15,3 +15,7 @@ class TokenVerificationFailed(Exception):
 
 class JudgeClientError(Exception):
     pass
+
+
+class JudgeServiceError(Exception):
+    pass
