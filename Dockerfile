@@ -10,7 +10,6 @@ RUN echo debconf shared/accepted-oracle-license-v1-1 seen true | sudo debconf-se
 RUN apt-get update
 RUN apt-get install -y oracle-java7-installer
 RUN cd /tmp && git clone https://github.com/QingdaoU/Judger && cd Judger && git checkout newnew && mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python setup.py install
-RUN mkdir /var/wp
 RUN pip install psutil gunicorn web.py requests
 RUN mkdir -p /judger_run /test_case /log /code
 COPY deploy/java_policy /etc

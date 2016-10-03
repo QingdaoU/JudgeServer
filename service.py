@@ -45,21 +45,11 @@ class JudgeService(object):
         if r["err"]:
             raise JudgeServiceError(r["data"])
 
-    def register(self):
-        data = server_info()
-        data["action"] = "register"
-        data["service_host"] = self.service_host
-        data["service_port"] = self.service_port
-        self._request(data)
-
-    def unregister(self):
-        data = server_info()
-        data["action"] = "unregister"
-        self._request(data)
-
     def heartbeat(self):
         data = server_info()
         data["action"] = "heartbeat"
+        data["service_host"] = self.service_host
+        data["service_port"] = self.service_port
         self._request(data)
 
 
