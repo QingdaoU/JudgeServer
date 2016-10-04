@@ -12,7 +12,7 @@ def server_info():
             "cpu": psutil.cpu_percent(),
             "cpu_core": psutil.cpu_count(),
             "memory": psutil.virtual_memory().percent,
-            "judger_version": ((ver >> 16) & 0xff, (ver >> 8) & 0xff, ver & 0xff)}
+            "judger_version": ".".join([str((ver >> 16) & 0xff), str((ver >> 8) & 0xff), str(ver & 0xff)])}
 
 
 def get_token():
