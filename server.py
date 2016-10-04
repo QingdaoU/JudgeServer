@@ -124,11 +124,17 @@ class JudgeServer(object):
             else:
                 return json.dumps({"err": "InvalidMethod", "data": None})
             return json.dumps({"err": None, "data": callback(**data)})
-        except Exception as e:
+        except (CompileError, TokenVerificationFailed, SPJCompileError, JudgeClientError) as e:
             logging.exception(e)
             ret = dict()
             ret["err"] = e.__class__.__name__
             ret["data"] = e.message
+            return json.dumps(ret)
+        except Exception as e:
+            logging.exception(e)
+            ret = dict()
+            ret["err"] = "JudgeClientError"
+            ret["data"] =e.__class__.__name__ + ":" + e.message
             return json.dumps(ret)
 
 
