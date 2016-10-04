@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import os
 import json
 import requests
+import hashlib
 
 from exception import JudgeServiceError
 from utils import server_info, get_token, logger
@@ -29,7 +30,7 @@ class JudgeService(object):
     def _request(self, data):
         try:
             r = requests.post(self.service_discovery_url, data=json.dumps(data),
-                              headers={"X-JUDGE-SERVER-TOKEN": get_token()}, timeout=5).json()
+                              headers={"X-JUDGE-SERVER-TOKEN": hashlib.sha256(get_token()).hexdigest()}, timeout=5).json()
         except Exception as e:
             logger.exception(e)
             raise JudgeServiceError(e.message)

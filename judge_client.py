@@ -38,6 +38,10 @@ class JudgeClient(object):
 
         self._spj_version = spj_version
         self._spj_config = spj_config
+        if self._spj_version and self._spj_config:
+            self._spj_exe = os.path.join(self._test_case_dir, self._spj_config["exe_name"].format(spj_version=self._spj_version))
+            if not os.path.exists(self._spj_exe):
+                raise JudgeClientError("spj exe not found")
 
     def _load_test_case_info(self):
         try:
@@ -62,9 +66,9 @@ class JudgeClient(object):
         return output_md5, output_md5 == self._test_case_info["test_cases"][str(test_case_file_id)]["striped_output_md5"]
 
     def _spj(self, in_file_path, user_out_file_path):
-        command = self._spj_config["command"].format(exe_path=os.path.join(self._test_case_dir,
-                                                                           self._spj_config["exe_name"].format(spj_version=self._spj_version)),
-                                                     in_file_path=in_file_path, user_out_file_path=user_out_file_path).split(" ")
+        command = self._spj_config["command"].format(exe_path=self._spj_exe,
+                                                     in_file_path=in_file_path,
+                                                     user_out_file_path=user_out_file_path).split(" ")
         result = _judger.run(max_cpu_time=self._max_cpu_time * 3,
                              max_real_time=self._max_cpu_time * 9,
                              max_memory=self._max_memory * 3,
