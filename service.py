@@ -2,19 +2,10 @@
 from __future__ import unicode_literals
 import os
 import json
-import logging
 import requests
 
 from exception import JudgeServiceError
-from utils import server_info, get_token
-
-
-logger = logging.getLogger(__name__)
-handler = logging.FileHandler("/log/service_log.log")
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.WARNING)
+from utils import server_info, get_token, logger
 
 
 class JudgeService(object):

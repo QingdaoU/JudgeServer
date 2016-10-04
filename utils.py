@@ -4,6 +4,7 @@ import _judger
 import psutil
 import socket
 import os
+import logging
 
 
 def server_info():
@@ -17,3 +18,11 @@ def server_info():
 
 def get_token():
     return os.environ.get("OJ_WEB_SERVER_ENV_judger_token") or os.environ.get("judger_token")
+
+
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("/log/judge_server.log")
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.WARNING)

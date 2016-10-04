@@ -5,7 +5,6 @@ import hashlib
 import json
 import os
 import shutil
-import logging
 
 import web
 
@@ -13,7 +12,7 @@ from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR
 from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
-from utils import server_info, get_token
+from utils import server_info, get_token, logger
 
 
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -28,7 +27,7 @@ class InitSubmissionEnv(object):
             os.mkdir(self.path)
             os.chmod(self.path, 0777)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
         return self.path
 
@@ -37,7 +36,7 @@ class InitSubmissionEnv(object):
             try:
                 shutil.rmtree(self.path)
             except Exception as e:
-                logging.exception(e)
+                logger.exception(e)
                 raise JudgeClientError("failed to clean runtime dir")
 
 
@@ -110,7 +109,7 @@ class JudgeServer(object):
                 try:
                     data = json.loads(web.data())
                 except Exception as e:
-                    logging.info(web.data())
+                    logger.info(web.data())
                     return {"ret": "ServerError", "data": "invalid json"}
             else:
                 data = {}
@@ -125,13 +124,13 @@ class JudgeServer(object):
                 return json.dumps({"err": "InvalidMethod", "data": None})
             return json.dumps({"err": None, "data": callback(**data)})
         except (CompileError, TokenVerificationFailed, SPJCompileError, JudgeClientError) as e:
-            logging.exception(e)
+            logger.exception(e)
             ret = dict()
             ret["err"] = e.__class__.__name__
             ret["data"] = e.message
             return json.dumps(ret)
         except Exception as e:
-            logging.exception(e)
+            logger.exception(e)
             ret = dict()
             ret["err"] = "JudgeClientError"
             ret["data"] =e.__class__.__name__ + ":" + e.message
@@ -146,7 +145,7 @@ urls = (
 
 
 if DEBUG:
-    logging.info("DEBUG=ON")
+    logger.info("DEBUG=ON")
 
 # check token
 JudgeServer()._token
