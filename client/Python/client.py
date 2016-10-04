@@ -99,7 +99,7 @@ if __name__ == "__main__":
     print client.compile_spj(src=c_spj_src, spj_version="1", spj_compile_config=c_lang_config["spj_compile"],
                              test_case_id="spj"), "\n\n"
 
-    print client.judge(src=c_src, language_config=c_lang_config, submission_id=str(int(time.time())),
+    print client.judge(src=c_src, language_config=c_lang_config, submission_id="0",
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
                        test_case_id="normal"), "\n\n"
 

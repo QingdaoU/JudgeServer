@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import json
 import os
+import time
 
 import _judger
 
@@ -15,7 +16,7 @@ class Compiler(object):
         command = compile_config["compile_command"]
         exe_path = os.path.join(output_dir, compile_config["exe_name"])
         command = command.format(src_path=src_path, exe_dir=output_dir, exe_path=exe_path)
-        compiler_out = os.path.join(output_dir, "compiler.out")
+        compiler_out = os.path.join(output_dir, str(time.time()) + "-compiler.out")
         _command = command.split(" ")
 
         result = _judger.run(max_cpu_time=compile_config["max_cpu_time"],
@@ -43,4 +44,5 @@ class Compiler(object):
                 raise CompileError(error)
             raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
 
+        os.remove(compiler_out)
         return exe_path
