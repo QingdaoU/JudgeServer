@@ -12,7 +12,6 @@ from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, LOW_PRIVILEDGE_GID, LOW_P
 from exception import JudgeClientError
 
 
-WA = -1
 SPJ_WA = 1
 SPJ_AC = 0
 SPJ_ERROR = -1
@@ -86,7 +85,8 @@ class JudgeClient(object):
                              gid=LOW_PRIVILEDGE_GID)
 
         if result["result"] == _judger.RESULT_SUCCESS or \
-                (result["result"] == _judger.RESULT_RUNTIME_ERROR and result["exit_code"] in [SPJ_WA, SPJ_ERROR]):
+                (result["result"] == _judger.RESULT_RUNTIME_ERROR and
+                         result["exit_code"] in [SPJ_WA, SPJ_ERROR] and result["signal"] == 0):
             return result["exit_code"]
         else:
             return SPJ_ERROR
@@ -124,14 +124,15 @@ class JudgeClient(object):
                 spj_result = self._spj(in_file_path=in_file, user_out_file_path=out_file)
 
                 if spj_result == SPJ_WA:
-                    run_result["result"] = WA
+                    run_result["result"] = _judger.RESULT_WRONG_ANSWER
                 elif spj_result == SPJ_ERROR:
                     run_result["result"] = _judger.RESULT_SYSTEM_ERROR
+                    run_result["error"] = _judger.RESULT_SPJ_ERROR
             else:
                 run_result["output_md5"], is_ac = self._compare_output(test_case_file_id)
                 # -1 == Wrong Answer
                 if not is_ac:
-                    run_result["result"] = WA
+                    run_result["result"] = _judger.RESULT_WRONG_ANSWER
 
         return run_result
 

@@ -17,8 +17,7 @@ class JudgeService(object):
         self.service_discovery_url = os.environ.get("service_discovery_url", "")
 
         # this container's ip and port, if these are not set, web server will think it's a linked container
-        self.service_host = os.environ.get("service_host")
-        self.service_port = os.environ.get("service_port")
+        self.service_url = os.environ.get("service_url")
 
         if not self.service_discovery_url:
             if not (self.service_discovery_host and self.service_discovery_port):
@@ -30,7 +29,8 @@ class JudgeService(object):
     def _request(self, data):
         try:
             r = requests.post(self.service_discovery_url, data=json.dumps(data),
-                              headers={"X-JUDGE-SERVER-TOKEN": hashlib.sha256(get_token()).hexdigest()}, timeout=5).json()
+                              headers={"X-JUDGE-SERVER-TOKEN": hashlib.sha256(get_token()).hexdigest(),
+                                       "Content-Type": "application/json"}, timeout=5).json()
         except Exception as e:
             logger.exception(e)
             raise JudgeServiceError(e.message)
@@ -40,8 +40,7 @@ class JudgeService(object):
     def heartbeat(self):
         data = server_info()
         data["action"] = "heartbeat"
-        data["service_host"] = self.service_host
-        data["service_port"] = self.service_port
+        data["service_url"] = self.service_url
         self._request(data)
 
 
