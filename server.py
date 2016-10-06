@@ -76,7 +76,7 @@ class JudgeServer(object):
                                        max_memory=max_memory,
                                        test_case_id=str(test_case_id),
                                        submission_dir=submission_dir,
-                                       spj_version=str(spj_version),
+                                       spj_version=spj_version,
                                        spj_config=spj_config)
             run_result = judge_client.run()
             return run_result
