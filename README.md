@@ -1,5 +1,3 @@
 # JudgeServer
 
-[API](http://docs.onlinejudge.me/judge_server/English/)
-
-[Deploy](http://docs.onlinejudge.me/judge_server/English/deploy/)
+[Document](http://docs.onlinejudge.me/JudgeServer/)
