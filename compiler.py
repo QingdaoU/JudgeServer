@@ -16,7 +16,7 @@ class Compiler(object):
         command = compile_config["compile_command"]
         exe_path = os.path.join(output_dir, compile_config["exe_name"])
         command = command.format(src_path=src_path, exe_dir=output_dir, exe_path=exe_path)
-        compiler_out = os.path.join(output_dir, str(time.time()) + "-compiler.out")
+        compiler_out = os.path.join(output_dir, "compiler.out")
         _command = command.split(" ")
 
         result = _judger.run(max_cpu_time=compile_config["max_cpu_time"],
@@ -37,12 +37,13 @@ class Compiler(object):
                              gid=LOW_PRIVILEDGE_GID)
 
         if result["result"] != _judger.RESULT_SUCCESS:
-            try:
+            if os.path.exists(compiler_out):
                 with open(compiler_out) as f:
                     error = f.read().strip()
-                os.remove(compiler_out)
-                if error:
-                    raise CompileError(error)
-            except Exception:
-                raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
-        return exe_path
+                    os.remove(compiler_out)
+                    if error:
+                        raise CompileError(error)
+            raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
+        else:
+            os.remove(compiler_out)
+            return exe_path
