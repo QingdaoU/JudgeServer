@@ -12,7 +12,7 @@ c_lang_config = {
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": None
+        "seccomp_rule": "c_cpp"
     },
     "spj_compile": {
         "src_name": "spj-{spj_version}.c",
@@ -42,7 +42,7 @@ cpp_lang_config = {
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": None,
+        "seccomp_rule": "c_cpp",
         "max_process_number": -1
     }
 }

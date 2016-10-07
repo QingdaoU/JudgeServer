@@ -32,7 +32,7 @@ class Compiler(object):
                              args=[item.encode("utf-8") for item in _command[1::]],
                              env=[("PATH=" + os.getenv("PATH")).encode("utf-8")],
                              log_path=COMPILER_LOG_PATH,
-                             seccomp_rule_so_path=None,
+                             seccomp_rule_name=None,
                              uid=LOW_PRIVILEDGE_UID,
                              gid=LOW_PRIVILEDGE_GID)
 
