@@ -37,12 +37,12 @@ class Compiler(object):
                              gid=LOW_PRIVILEDGE_GID)
 
         if result["result"] != _judger.RESULT_SUCCESS:
-            with open(compiler_out) as f:
-                error = f.read().strip()
-            os.remove(compiler_out)
-            if error:
-                raise CompileError(error)
-            raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
-
-        os.remove(compiler_out)
+            try:
+                with open(compiler_out) as f:
+                    error = f.read().strip()
+                os.remove(compiler_out)
+                if error:
+                    raise CompileError(error)
+            except Exception:
+                raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
         return exe_path
