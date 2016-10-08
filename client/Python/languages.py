@@ -8,27 +8,28 @@ c_lang_config = {
         "max_cpu_time": 3000,
         "max_real_time": 5000,
         "max_memory": 128 * 1024 * 1024,
-        "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c99 -static {src_path} -lm -o {exe_path}",
+        "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c99 {src_path} -lm -o {exe_path}",
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": "c_cpp"
-    },
-    "spj_compile": {
-        "src_name": "spj-{spj_version}.c",
-        "exe_name": "spj-{spj_version}",
-        "max_cpu_time": 3000,
-        "max_real_time": 5000,
-        "max_memory": 1024 * 1024 * 1024,
-        "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c99 {src_path} -lm -o {exe_path}"
-    },
-    "spj_config": {
-        "exe_name": "spj-{spj_version}",
-        "command": "{exe_path} {in_file_path} {user_out_file_path}",
-        "seccomp_rule": "c_cpp"
+        "seccomp_rule": "c_cpp",
     }
 }
 
+c_lang_spj_compile = {
+    "src_name": "spj-{spj_version}.c",
+    "exe_name": "spj-{spj_version}",
+    "max_cpu_time": 3000,
+    "max_real_time": 5000,
+    "max_memory": 1024 * 1024 * 1024,
+    "compile_command": "/usr/bin/gcc -DONLINE_JUDGE -O2 -w -fmax-errors=3 -std=c99 {src_path} -lm -o {exe_path}"
+}
+
+c_lang_spj_config = {
+    "exe_name": "spj-{spj_version}",
+    "command": "{exe_path} {in_file_path} {user_out_file_path}",
+    "seccomp_rule": "c_cpp"
+}
 
 cpp_lang_config = {
     "name": "cpp",
@@ -42,11 +43,9 @@ cpp_lang_config = {
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": "c_cpp",
-        "max_process_number": -1
+        "seccomp_rule": "c_cpp"
     }
 }
-
 
 java_lang_config = {
     "name": "java",
@@ -61,6 +60,6 @@ java_lang_config = {
     "run": {
         "command": "/usr/bin/java -cp {exe_dir} -Xss1M -XX:MaxPermSize=16M -XX:PermSize=8M -Xms16M -Xmx{max_memory}k -Djava.security.manager -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true Main",
         "seccomp_rule": None,
-        "max_process_number": -1
+        "env": ["MALLOC_ARENA_MAX=1"]
     }
 }

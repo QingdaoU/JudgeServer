@@ -95,6 +95,7 @@ class JudgeClient(object):
         command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path),
                                                      max_memory=self._max_memory / 1024).split(" ")
         seccomp_rule_name = self._run_config["seccomp_rule"].encode("utf-8") if self._run_config["seccomp_rule"] else None
+        env = [item.encode("utf-8") for item in ["PATH=" + os.environ.get("PATH", "")] + self._run_config.get("env", [])]
 
         run_result = _judger.run(max_cpu_time=self._max_cpu_time,
                                  max_real_time=self._max_real_time,
@@ -106,7 +107,7 @@ class JudgeClient(object):
                                  output_path=out_file,
                                  error_path=out_file,
                                  args=[item.encode("utf-8") for item in command[1::]],
-                                 env=[("PATH=" + os.getenv("PATH", "")).encode("utf-8")],
+                                 env=env,
                                  log_path=JUDGER_RUN_LOG_PATH,
                                  seccomp_rule_name=seccomp_rule_name,
                                  uid=LOW_PRIVILEDGE_UID,

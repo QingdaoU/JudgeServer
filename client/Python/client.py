@@ -3,11 +3,10 @@ from __future__ import unicode_literals
 
 import hashlib
 import json
-import time
 
 import requests
 
-from languages import c_lang_config, cpp_lang_config, java_lang_config
+from languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, c_lang_spj_compile
 
 
 class JudgeServerClientError(Exception):
@@ -95,7 +94,7 @@ if __name__ == "__main__":
 
     client = JudgeServerClient(token="token", server_base_url="http://123.57.151.42:12358")
     print client.ping(), "\n\n"
-    print client.compile_spj(src=c_spj_src, spj_version="1", spj_compile_config=c_lang_config["spj_compile"],
+    print client.compile_spj(src=c_spj_src, spj_version="1", spj_compile_config=c_lang_spj_compile,
                              test_case_id="spj"), "\n\n"
 
     print client.judge(src=c_src, language_config=c_lang_config,
@@ -113,4 +112,4 @@ if __name__ == "__main__":
     print client.judge(src=c_src, language_config=c_lang_config,
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
                        test_case_id="spj",
-                       spj_version="1", spj_config=c_lang_config["spj_config"]), "\n\n"
+                       spj_version="1", spj_config=c_lang_spj_config), "\n\n"
