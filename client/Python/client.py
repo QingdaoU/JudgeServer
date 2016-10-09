@@ -6,7 +6,7 @@ import json
 
 import requests
 
-from languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, c_lang_spj_compile
+from languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, c_lang_spj_compile, py2_lang_config
 
 
 class JudgeServerClientError(Exception):
@@ -92,8 +92,17 @@ if __name__ == "__main__":
     }
     """
 
+    py2_src = """s = raw_input()
+s1 = s.split(" ")
+print int(s1[0]) + int(s1[1])"""
+
     client = JudgeServerClient(token="token", server_base_url="http://123.57.151.42:12358")
     print client.ping(), "\n\n"
+
+    print client.judge(src=py2_src, language_config=py2_lang_config,
+                       max_cpu_time=1000, max_memory=128 * 1024 * 1024,
+                       test_case_id="normal"), "\n\n"
+
     print client.compile_spj(src=c_spj_src, spj_version="1", spj_compile_config=c_lang_spj_compile,
                              test_case_id="spj"), "\n\n"
 

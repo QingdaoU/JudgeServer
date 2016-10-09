@@ -23,7 +23,7 @@ class Compiler(object):
                              max_real_time=compile_config["max_real_time"],
                              max_memory=compile_config["max_memory"],
                              max_output_size=1024 * 1024,
-                             max_process_number=20,
+                             max_process_number=_judger.UNLIMITED,
                              exe_path=_command[0],
                              # /dev/null is best, but in some system, this will call ioctl system call
                              input_path=src_path,

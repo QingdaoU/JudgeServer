@@ -57,20 +57,26 @@ class JudgeServer(object):
     def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
               spj_version=None, spj_config=None):
         # init
-        compile_config = language_config["compile"]
+        compile_config = language_config.get("compile")
+        run_config = language_config["run"]
         submission_id = str(uuid.uuid4())
 
         with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
-            src_path = os.path.join(submission_dir, compile_config["src_name"])
+            if compile_config:
+                src_path = os.path.join(submission_dir, compile_config["src_name"])
 
-            # write source code into file
-            with open(src_path, "w") as f:
-                f.write(src.encode("utf-8"))
+                # write source code into file
+                with open(src_path, "w") as f:
+                    f.write(src.encode("utf-8"))
 
-            # compile source code, return exe file path
-            exe_path = Compiler().compile(compile_config=compile_config,
-                                          src_path=src_path,
-                                          output_dir=submission_dir)
+                # compile source code, return exe file path
+                exe_path = Compiler().compile(compile_config=compile_config,
+                                              src_path=src_path,
+                                              output_dir=submission_dir)
+            else:
+                exe_path = os.path.join(submission_dir, run_config["exe_path"])
+                with open(exe_path, "w") as f:
+                    f.write(src.encode("utf-8"))
 
             judge_client = JudgeClient(run_config=language_config["run"],
                                        exe_path=exe_path,
