@@ -8,7 +8,7 @@ import hashlib
 
 from multiprocessing import Pool
 
-from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, LOW_PRIVILEDGE_GID, LOW_PRIVILEDGE_UID
+from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, LOW_PRIVILEDGE_GID, LOW_PRIVILEDGE_UID, SPJ_EXE_DIR
 from exception import JudgeClientError
 
 
@@ -38,7 +38,7 @@ class JudgeClient(object):
         self._spj_version = spj_version
         self._spj_config = spj_config
         if self._spj_version and self._spj_config:
-            self._spj_exe = os.path.join(self._test_case_dir, self._spj_config["exe_name"].format(spj_version=self._spj_version))
+            self._spj_exe = os.path.join(SPJ_EXE_DIR, self._spj_config["exe_name"].format(spj_version=self._spj_version))
             if not os.path.exists(self._spj_exe):
                 raise JudgeClientError("spj exe not found")
 

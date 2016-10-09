@@ -14,6 +14,8 @@ RUN pip install psutil gunicorn web.py requests
 RUN mkdir -p /judger_run /test_case /log /code
 COPY deploy/java_policy /etc
 RUN chmod -R 777 /judger_run
+RUN mkdir -p /spj/exe /spj/src
+RUN chown -R nobody:nogroup /spj
 RUN pip install futures psutil gunicorn web.py
 HEALTHCHECK --interval=5s --retries=3 CMD python /code/service.py
 WORKDIR /code

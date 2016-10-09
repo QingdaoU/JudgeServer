@@ -10,7 +10,7 @@ import uuid
 import web
 
 from compiler import Compiler
-from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR
+from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR, SPJ_SRC_DIR, SPJ_EXE_DIR
 from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
 from utils import server_info, get_token, logger
@@ -55,11 +55,16 @@ class JudgeServer(object):
         return hashlib.sha256(t).hexdigest()
 
     def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
-              spj_version=None, spj_config=None):
+              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None):
         # init
         compile_config = language_config.get("compile")
         run_config = language_config["run"]
         submission_id = str(uuid.uuid4())
+
+        if spj_version:
+            self.compile_spj(spj_version=spj_version, src=spj_src,
+                             spj_compile_config=spj_compile_config,
+                             test_case_id=test_case_id)
 
         with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
             if compile_config:
@@ -74,7 +79,7 @@ class JudgeServer(object):
                                               src_path=src_path,
                                               output_dir=submission_dir)
             else:
-                exe_path = os.path.join(submission_dir, run_config["exe_path"])
+                exe_path = os.path.join(submission_dir, run_config["exe_name"])
                 with open(exe_path, "w") as f:
                     f.write(src.encode("utf-8"))
 
@@ -93,7 +98,7 @@ class JudgeServer(object):
         spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_version)
         spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_version)
 
-        spj_src_path = os.path.join(TEST_CASE_DIR, test_case_id, spj_compile_config["src_name"])
+        spj_src_path = os.path.join(SPJ_SRC_DIR, spj_compile_config["src_name"])
 
         # if spj source code not found, then write it into file
         if not os.path.exists(spj_src_path):
@@ -102,7 +107,7 @@ class JudgeServer(object):
         try:
             Compiler().compile(compile_config=spj_compile_config,
                                src_path=spj_src_path,
-                               output_dir=os.path.join(TEST_CASE_DIR, test_case_id))
+                               output_dir=SPJ_EXE_DIR)
         # turn common CompileError into SPJCompileError
         except CompileError as e:
             raise SPJCompileError(e.message)
