@@ -15,5 +15,5 @@ LOW_PRIVILEDGE_UID = pwd.getpwnam("nobody").pw_uid
 LOW_PRIVILEDGE_GID = grp.getgrnam("nogroup").gr_gid
 
 TEST_CASE_DIR = "/test_case"
-SPJ_SRC_DIR = "/spj/src"
-SPJ_EXE_DIR = "/spj/exe"
+SPJ_SRC_DIR = "/spj"
+SPJ_EXE_DIR = "/spj"

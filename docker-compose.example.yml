@@ -1,11 +1,21 @@
-judge_server:
-    image: judge_server
-    cpu_quota: 90000
-    volumes:
-        - /data/JudgeServer/test/test_case:/test_case
-        - /data/log:/log
-        - /data/JudgeServer:/code:ro
-    environment:
-        - judger_token=PLEASE_REPLACE_TO_SECRET_TOKEN
-    ports:
-        - "0.0.0.0:11235:8080"
+version: "2"
+services:
+    judge_server:
+        image: judge_server
+        cpu_quota: 90000
+        read_only: true
+        tmpfs:
+            - /tmp
+            - /judger_run
+            - /spj
+        volumes:
+            - /data/JudgeServer/tests/test_case:/test_case:ro
+            - /data/log:/log
+            - /data/JudgeServer:/code:ro
+        environment:
+            - judger_token=token
+            - service_discovery_url=https://virusdefender.net/service.php
+            - service_url=http://1.2.3.4:12345
+            - judger_debug=1
+        ports:
+            - "0.0.0.0:12358:8080"
