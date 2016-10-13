@@ -56,8 +56,8 @@ class JudgeClient(object):
     def _compare_output(self, test_case_file_id):
         user_output_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
         with open(user_output_file, "r") as f:
-            content = f.read().strip()
-        output_md5 = hashlib.md5(content).hexdigest()
+            content = f.read()
+        output_md5 = hashlib.md5(content.strip()).hexdigest()
         result = output_md5 == self._test_case_info["test_cases"][str(test_case_file_id)]["striped_output_md5"]
         # if output is True, we need to return user output content else return None
         if self._output:
