@@ -137,7 +137,7 @@ class JudgeClient(object):
                     run_result["result"] = _judger.RESULT_WRONG_ANSWER
                 elif spj_result == SPJ_ERROR:
                     run_result["result"] = _judger.RESULT_SYSTEM_ERROR
-                    run_result["error"] = -11
+                    run_result["error"] = _judger.ERROR_SPJ_ERROR
             else:
                 run_result["output_md5"], is_ac, run_result["output"] = self._compare_output(test_case_file_id)
                 # -1 == Wrong Answer
