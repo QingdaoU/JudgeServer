@@ -22,7 +22,8 @@ def _run(instance, test_case_file_id):
 
 
 class JudgeClient(object):
-    def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_id, submission_dir, spj_version, spj_config):
+    def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_id,
+                 submission_dir, spj_version, spj_config, output=False):
         self._run_config = run_config
         self._exe_path = exe_path
         self._max_cpu_time = max_cpu_time
@@ -37,6 +38,7 @@ class JudgeClient(object):
 
         self._spj_version = spj_version
         self._spj_config = spj_config
+        self._output = output
         if self._spj_version and self._spj_config:
             self._spj_exe = os.path.join(SPJ_EXE_DIR, self._spj_config["exe_name"].format(spj_version=self._spj_version))
             if not os.path.exists(self._spj_exe):
@@ -53,12 +55,15 @@ class JudgeClient(object):
 
     def _compare_output(self, test_case_file_id):
         user_output_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
-        try:
-            f = open(user_output_file, "r")
-        except Exception:
-            raise JudgeClientError("output not found")
-        output_md5 = hashlib.md5(f.read().rstrip()).hexdigest()
-        return output_md5, output_md5 == self._test_case_info["test_cases"][str(test_case_file_id)]["striped_output_md5"]
+        with open(user_output_file, "r") as f:
+            content = f.read().strip()
+        output_md5 = hashlib.md5(content).hexdigest()
+        result = output_md5 == self._test_case_info["test_cases"][str(test_case_file_id)]["striped_output_md5"]
+        # if output is True, we need to return user output content else return None
+        if self._output:
+            return output_md5, result, content.decode("utf-8")
+        else:
+            return output_md5, result, None
 
     def _spj(self, in_file_path, user_out_file_path):
         command = self._spj_config["command"].format(exe_path=self._spj_exe,
@@ -116,10 +121,16 @@ class JudgeClient(object):
 
         # if progress exited normally, then we should check output result
         run_result["output_md5"] = None
+        run_result["output"] = None
         if run_result["result"] == _judger.RESULT_SUCCESS:
             if self._test_case_info["spj"]:
                 if not self._spj_config or not self._spj_version:
                     raise JudgeClientError("spj_config or spj_version not set")
+
+                if self._output:
+                    with open(out_file, "r") as f:
+                        run_result["output"] = f.read().decode("utf-8")
+
                 spj_result = self._spj(in_file_path=in_file, user_out_file_path=out_file)
 
                 if spj_result == SPJ_WA:
@@ -128,7 +139,7 @@ class JudgeClient(object):
                     run_result["result"] = _judger.RESULT_SYSTEM_ERROR
                     run_result["error"] = -11
             else:
-                run_result["output_md5"], is_ac = self._compare_output(test_case_file_id)
+                run_result["output_md5"], is_ac, run_result["output"] = self._compare_output(test_case_file_id)
                 # -1 == Wrong Answer
                 if not is_ac:
                     run_result["result"] = _judger.RESULT_WRONG_ANSWER

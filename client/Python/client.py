@@ -32,7 +32,7 @@ class JudgeServerClient(object):
         return self._request(self.server_base_url + "/ping")
 
     def judge(self, src, language_config, max_cpu_time, max_memory, test_case_id, spj_version=None, spj_config=None,
-              spj_compile_config=None, spj_src=None):
+              spj_compile_config=None, spj_src=None, output=False):
         data = {"language_config": language_config,
                 "src": src,
                 "max_cpu_time": max_cpu_time,
@@ -41,7 +41,8 @@ class JudgeServerClient(object):
                 "spj_version": spj_version,
                 "spj_config": spj_config,
                 "spj_compile_config": spj_compile_config,
-                "spj_src": spj_src}
+                "spj_src": spj_src,
+                "output": output}
         return self._request(self.server_base_url + "/judge", data=data)
 
     def compile_spj(self, src, spj_version, spj_compile_config, test_case_id):
@@ -110,7 +111,7 @@ print int(s1[0]) + int(s1[1])"""
 
     print client.judge(src=c_src, language_config=c_lang_config,
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
-                       test_case_id="normal"), "\n\n"
+                       test_case_id="normal", output=True), "\n\n"
 
     print client.judge(src=cpp_src, language_config=cpp_lang_config,
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,

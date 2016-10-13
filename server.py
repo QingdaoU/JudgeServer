@@ -55,7 +55,7 @@ class JudgeServer(object):
         return hashlib.sha256(t).hexdigest()
 
     def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
-              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None):
+              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
         # init
         compile_config = language_config.get("compile")
         run_config = language_config["run"]
@@ -90,7 +90,8 @@ class JudgeServer(object):
                                        test_case_id=str(test_case_id),
                                        submission_dir=submission_dir,
                                        spj_version=spj_version,
-                                       spj_config=spj_config)
+                                       spj_config=spj_config,
+                                       output=output)
             run_result = judge_client.run()
             return run_result
 
