@@ -7,7 +7,7 @@ import time
 
 import _judger
 
-from config import COMPILER_LOG_PATH, LOW_PRIVILEDGE_UID, LOW_PRIVILEDGE_GID
+from config import COMPILER_LOG_PATH, COMPILER_USER_UID, COMPILER_GROUP_GID
 from exception import CompileError
 
 
@@ -33,8 +33,8 @@ class Compiler(object):
                              env=[("PATH=" + os.getenv("PATH")).encode("utf-8")],
                              log_path=COMPILER_LOG_PATH,
                              seccomp_rule_name=None,
-                             uid=LOW_PRIVILEDGE_UID,
-                             gid=LOW_PRIVILEDGE_GID)
+                             uid=COMPILER_USER_UID,
+                             gid=COMPILER_GROUP_GID)
 
         if result["result"] != _judger.RESULT_SUCCESS:
             if os.path.exists(compiler_out):

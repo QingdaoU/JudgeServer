@@ -8,7 +8,7 @@ import hashlib
 
 from multiprocessing import Pool
 
-from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, LOW_PRIVILEDGE_GID, LOW_PRIVILEDGE_UID, SPJ_EXE_DIR
+from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, RUN_GROUP_GID, RUN_USER_UID, SPJ_EXE_DIR
 from exception import JudgeClientError
 
 
@@ -79,8 +79,8 @@ class JudgeClient(object):
                              env=[("PATH=" + os.environ.get("PATH", "")).encode("utf-8")],
                              log_path=JUDGER_RUN_LOG_PATH,
                              seccomp_rule_name=seccomp_rule_name,
-                             uid=LOW_PRIVILEDGE_UID,
-                             gid=LOW_PRIVILEDGE_GID)
+                             uid=RUN_USER_UID,
+                             gid=RUN_GROUP_GID)
 
         if result["result"] == _judger.RESULT_SUCCESS or \
                 (result["result"] == _judger.RESULT_RUNTIME_ERROR and
@@ -111,8 +111,8 @@ class JudgeClient(object):
                                  env=env,
                                  log_path=JUDGER_RUN_LOG_PATH,
                                  seccomp_rule_name=seccomp_rule_name,
-                                 uid=LOW_PRIVILEDGE_UID,
-                                 gid=LOW_PRIVILEDGE_GID)
+                                 uid=RUN_USER_UID,
+                                 gid=RUN_GROUP_GID)
         run_result["test_case"] = test_case_file_id
 
         # if progress exited normally, then we should check output result

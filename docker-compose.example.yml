@@ -4,6 +4,13 @@ services:
         image: judge_server
         cpu_quota: 90000
         read_only: true
+        cap_drop:
+            - SETPCAP
+            - MKNOD
+            - NET_BIND_SERVICE
+            - SYS_CHROOT
+            - SETFCAP
+            - FSETID
         tmpfs:
             - /tmp
             - /judger_run:exec,mode=777
@@ -15,7 +22,6 @@ services:
         environment:
             - judger_token=token
             - service_discovery_url=https://virusdefender.net/service.php
-            - service_url=http://1.2.3.4:12345
-            - judger_debug=1
+            - service_url=http://1.2.3.4:12358
         ports:
             - "0.0.0.0:12358:8080"
