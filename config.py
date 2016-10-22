@@ -20,3 +20,5 @@ COMPILER_GROUP_GID = grp.getgrnam("compiler").gr_gid
 TEST_CASE_DIR = "/test_case"
 SPJ_SRC_DIR = "/spj"
 SPJ_EXE_DIR = "/spj"
+
+COUNTER_FILE_PATH = "/tmp/counter"

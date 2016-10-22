@@ -10,10 +10,10 @@ import uuid
 import web
 
 from compiler import Compiler
-from config import JUDGER_WORKSPACE_BASE, TEST_CASE_DIR, SPJ_SRC_DIR, SPJ_EXE_DIR
+from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COUNTER_FILE_PATH
 from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
-from utils import server_info, get_token, logger
+from utils import server_info, get_token, logger, TaskCounter
 
 
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -30,9 +30,11 @@ class InitSubmissionEnv(object):
         except Exception as e:
             logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
+        TaskCounter().update(+1)
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        TaskCounter().update(-1)
         if not DEBUG:
             try:
                 shutil.rmtree(self.path)
@@ -93,6 +95,7 @@ class JudgeServer(object):
                                        spj_config=spj_config,
                                        output=output)
             run_result = judge_client.run()
+
             return run_result
 
     def compile_spj(self, spj_version, src, spj_compile_config, test_case_id):
