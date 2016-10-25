@@ -59,7 +59,7 @@ echo "ping:\n";
 print_r($judgeClient->ping());
 
 echo "\n\ncompile_spj:\n";
-print_r($judgeClient->compileSpj($c_spj_src, '2',$languages['c_lang_spj_compile'], 'spj'));
+print_r($judgeClient->compileSpj($c_spj_src, '2', $languages['c_lang_spj_compile'], 'spj'));
 
 echo "\n\njudge c:\n";
 print_r($judgeClient->judge($c_src, $languages['c_lang_config'], 1000, 1024 * 1024 * 128, 'normal', true));
