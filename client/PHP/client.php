@@ -32,6 +32,7 @@ int main()
     return 0;
 }
 EOD;
+
 $java_src = <<<EOD
 import java.util.Scanner;
 public class Main{

@@ -6,8 +6,7 @@ class JudgeClient{
     private $ch = null;
     private $serverBaseUrl = '';
 
-    public function __construct($token, $serverBaseUrl)
-    {
+    public function __construct($token, $serverBaseUrl){
         $this->serverBaseUrl = rtrim($serverBaseUrl, '/');
         $this->ch = curl_init();
         $defaults = [
@@ -72,8 +71,7 @@ class JudgeClient{
         }
     }
 
-    public function __destruct()
-    {
+    public function __destruct(){
         $this->close();
     }
 }
