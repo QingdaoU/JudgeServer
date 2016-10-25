@@ -20,7 +20,8 @@ class JudgeServerClient(object):
         self.server_base_url = server_base_url.rstrip("/")
 
     def _request(self, url, data=None):
-        kwargs = {"headers": {"X-Judge-Server-Token": self.token}}
+        kwargs = {"headers": {"X-Judge-Server-Token": self.token,
+                              "Content-Type": "application/json"}}
         if data:
             kwargs["data"] = json.dumps(data)
         try:
