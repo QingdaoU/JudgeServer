@@ -101,8 +101,6 @@ if __name__ == "__main__":
 s1 = s.split(" ")
 print int(s1[0]) + int(s1[1])"""
 
-    js_src = "console.log(3)"
-
     client = JudgeServerClient(token="token", server_base_url="http://123.57.151.42:12358")
     print client.ping(), "\n\n"
 
