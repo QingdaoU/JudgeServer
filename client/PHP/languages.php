@@ -1,10 +1,5 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: ty
- * Date: 16-9-29
- * Time: 下午11:22
- */
+
 return [
     'c_lang_config' => [
         'compile'=> [
