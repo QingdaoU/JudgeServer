@@ -1,7 +1,7 @@
 version: "2"
 services:
     judge_server:
-        image: judge_server
+        image: qduoj/judge_server
         cpu_quota: 90000
         read_only: true
         cap_drop:
