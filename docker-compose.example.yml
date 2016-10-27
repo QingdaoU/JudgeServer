@@ -16,9 +16,9 @@ services:
             - /judger_run:exec,mode=777
             - /spj:exec,mode=777
         volumes:
-            - /data/JudgeServer/tests/test_case:/test_case:ro
+            - $PWD/tests/test_case:/test_case:ro
             - /data/log:/log
-            - /data/JudgeServer/server:/code:ro
+            - $PWD/server:/code:ro
         environment:
             - judger_token=token
             - service_discovery_url=https://virusdefender.net/service.php
