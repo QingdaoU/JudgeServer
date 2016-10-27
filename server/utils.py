@@ -3,11 +3,21 @@ from __future__ import unicode_literals
 import _judger
 import psutil
 import socket
-import os
 import logging
 import fcntl
+import hashlib
+import os
 
 from config import COUNTER_FILE_PATH
+from exception import JudgeClientError
+
+
+logger = logging.getLogger(__name__)
+handler = logging.FileHandler("/log/judge_server.log")
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.WARNING)
 
 
 class TaskCounter(object):
@@ -48,12 +58,11 @@ def server_info():
 
 
 def get_token():
-    return os.environ.get("OJ_WEB_SERVER_ENV_judger_token") or os.environ.get("judger_token")
+    token = os.environ.get("OJ_WEB_SERVER_ENV_judger_token") or os.environ.get("judger_token")
+    if not token:
+        raise JudgeClientError("judger_token not set")
+    return token
 
 
-logger = logging.getLogger(__name__)
-handler = logging.FileHandler("/log/judge_server.log")
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-logger.setLevel(logging.WARNING)
+token = hashlib.sha256(get_token()).hexdigest()
+

@@ -6,7 +6,7 @@ import requests
 import hashlib
 
 from exception import JudgeServiceError
-from utils import server_info, get_token, logger
+from utils import server_info, logger, token
 
 
 class JudgeService(object):
@@ -29,7 +29,7 @@ class JudgeService(object):
     def _request(self, data):
         try:
             r = requests.post(self.service_discovery_url, data=json.dumps(data),
-                              headers={"X-JUDGE-SERVER-TOKEN": hashlib.sha256(get_token()).hexdigest(),
+                              headers={"X-JUDGE-SERVER-TOKEN": token,
                                        "Content-Type": "application/json"}, timeout=5).json()
         except Exception as e:
             logger.exception(e)

@@ -18,7 +18,7 @@ services:
         volumes:
             - /data/JudgeServer/tests/test_case:/test_case:ro
             - /data/log:/log
-            - /data/JudgeServer:/code:ro
+            - /data/JudgeServer/server:/code:ro
         environment:
             - judger_token=token
             - service_discovery_url=https://virusdefender.net/service.php

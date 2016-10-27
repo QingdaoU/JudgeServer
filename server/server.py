@@ -13,7 +13,7 @@ from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COUNTER_FILE_PATH
 from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
-from utils import server_info, get_token, logger, TaskCounter
+from utils import server_info, logger, TaskCounter, token
 
 
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -48,13 +48,6 @@ class JudgeServer(object):
         data = server_info()
         data["action"] = "pong"
         return data
-
-    @property
-    def _token(self):
-        t = get_token()
-        if not t:
-            raise TokenVerificationFailed("token not set")
-        return hashlib.sha256(t).hexdigest()
 
     def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
               spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
@@ -118,9 +111,9 @@ class JudgeServer(object):
         return "success"
 
     def POST(self):
-        token = web.ctx.env.get("HTTP_X_JUDGE_SERVER_TOKEN", None)
+        _token = web.ctx.env.get("HTTP_X_JUDGE_SERVER_TOKEN", None)
         try:
-            if token != self._token:
+            if _token != token:
                 raise TokenVerificationFailed("invalid token")
             if web.data():
                 try:
@@ -163,9 +156,6 @@ urls = (
 
 if DEBUG:
     logger.info("DEBUG=ON")
-
-# check token
-JudgeServer()._token
 
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()
