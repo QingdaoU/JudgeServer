@@ -60,7 +60,7 @@ def server_info():
 def get_token():
     try:
         with open(TOKEN_FILE_PATH, "r") as f:
-            return f.read()
+            return f.read().strip()
     except IOError:
         raise JudgeClientError("token.txt not found")
 
