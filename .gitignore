@@ -68,3 +68,5 @@ docker-compose.yml
 rsyncd.passwd
 
 node_modules/
+
+token.txt

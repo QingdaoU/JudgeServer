@@ -8,7 +8,7 @@ import fcntl
 import hashlib
 import os
 
-from config import COUNTER_FILE_PATH
+from config import COUNTER_FILE_PATH, TOKEN_FILE_PATH
 from exception import JudgeClientError
 
 
@@ -58,10 +58,11 @@ def server_info():
 
 
 def get_token():
-    token = os.environ.get("OJ_WEB_SERVER_ENV_judger_token") or os.environ.get("judger_token")
-    if not token:
-        raise JudgeClientError("judger_token not set")
-    return token
+    try:
+        with open(TOKEN_FILE_PATH, "r") as f:
+            return f.read()
+    except IOError:
+        raise JudgeClientError("token.txt not found")
 
 
 token = hashlib.sha256(get_token()).hexdigest()
