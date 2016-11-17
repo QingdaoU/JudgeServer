@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-import hashlib
 import json
 import os
 import shutil
@@ -10,10 +9,10 @@ import uuid
 import web
 
 from compiler import Compiler
-from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COUNTER_FILE_PATH
+from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR
 from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
-from utils import server_info, logger, TaskCounter, token
+from utils import server_info, logger, token
 
 
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -30,11 +29,9 @@ class InitSubmissionEnv(object):
         except Exception as e:
             logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
-        TaskCounter().update(+1)
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        TaskCounter().update(-1)
         if not DEBUG:
             try:
                 shutil.rmtree(self.path)
