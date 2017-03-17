@@ -15,7 +15,7 @@ services:
             - /judger_run:exec,mode=777
             - /spj:exec,mode=777
         volumes:
-            - $PWD/tests/test_case:/test_case:ro
+            - $PWD/tests/test_case:/test_case
             - /data/log:/log
             - $PWD/server:/code:ro
             - $PWD/token.txt:/token.txt
