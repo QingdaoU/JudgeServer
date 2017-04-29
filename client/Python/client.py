@@ -7,7 +7,7 @@ import json
 import requests
 
 from languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, \
-    c_lang_spj_compile, py2_lang_config
+    c_lang_spj_compile, py2_lang_config, py3_lang_config
 
 
 class JudgeServerClientError(Exception):
@@ -102,6 +102,10 @@ if __name__ == "__main__":
 s1 = s.split(" ")
 print int(s1[0]) + int(s1[1])"""
 
+    py3_src = """s = input()
+s1 = s.split(" ")
+print(int(s1[0]) + int(s1[1]))"""
+
     client = JudgeServerClient(token=token, server_base_url="http://test.qduoj.com:12358")
     print(client.ping(), "\n\n")
 
@@ -127,5 +131,9 @@ print int(s1[0]) + int(s1[1])"""
                        spj_compile_config=c_lang_spj_compile, spj_src=c_spj_src), "\n\n")
 
     print(client.judge(src=py2_src, language_config=py2_lang_config,
+                       max_cpu_time=1000, max_memory=128 * 1024 * 1024,
+                       test_case_id="normal"), "\n\n")
+
+    print(client.judge(src=py3_src, language_config=py3_lang_config,
                        max_cpu_time=1000, max_memory=128 * 1024 * 1024,
                        test_case_id="normal"), "\n\n")
