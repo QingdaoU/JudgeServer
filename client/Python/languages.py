@@ -1,6 +1,9 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
+default_env = ["LANG=en_US.UTF-8", "LANGUAGE=en_US:en", "LC_ALL=en_US.UTF-8"]
+
+
 c_lang_config = {
     "compile": {
         "src_name": "main.c",
@@ -13,6 +16,7 @@ c_lang_config = {
     "run": {
         "command": "{exe_path}",
         "seccomp_rule": "c_cpp",
+        "env": default_env
     }
 }
 
@@ -42,7 +46,8 @@ cpp_lang_config = {
     },
     "run": {
         "command": "{exe_path}",
-        "seccomp_rule": "c_cpp"
+        "seccomp_rule": "c_cpp",
+        "env": default_env
     }
 }
 
@@ -59,7 +64,7 @@ java_lang_config = {
     "run": {
         "command": "/usr/bin/java -cp {exe_dir} -Xss1M -XX:MaxPermSize=16M -XX:PermSize=8M -Xms16M -Xmx{max_memory}k -Djava.security.manager -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true Main",
         "seccomp_rule": None,
-        "env": ["MALLOC_ARENA_MAX=1"]
+        "env": ["MALLOC_ARENA_MAX=1"] + default_env
     }
 }
 
@@ -76,5 +81,6 @@ py2_lang_config = {
     "run": {
         "command": "/usr/bin/python {exe_path}",
         "seccomp_rule": None,
+        "env": default_env
     }
 }
