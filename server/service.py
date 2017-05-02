@@ -24,7 +24,7 @@ class JudgeService(object):
                 raise JudgeServiceError("service discovery host or port not found")
             else:
                 self.service_discovery_url = "http://" + self.service_discovery_host + ":" + \
-                                             str(self.service_discovery_port) + "/api/judge_service/"
+                                             str(self.service_discovery_port) + "/api/judge_server_heartbeat/"
 
     def _request(self, data):
         try:
@@ -34,7 +34,7 @@ class JudgeService(object):
         except Exception as e:
             logger.exception(e)
             raise JudgeServiceError(e.message)
-        if r["err"]:
+        if r["error"]:
             raise JudgeServiceError(r["data"])
 
     def heartbeat(self):
