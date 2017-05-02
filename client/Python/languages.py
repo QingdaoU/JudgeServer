@@ -62,7 +62,7 @@ java_lang_config = {
         "compile_command": "/usr/bin/javac {src_path} -d {exe_dir} -encoding UTF8"
     },
     "run": {
-        "command": "/usr/bin/java -cp {exe_dir} -Xss1M -XX:MaxPermSize=16M -XX:PermSize=8M -Xms16M -Xmx{max_memory}k -Djava.security.manager -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true Main",
+        "command": "/usr/bin/java -cp {exe_dir} -Xss1M -XX:MaxPermSize=16M -XX:PermSize=8M -Xms16M -Xmx{max_memory}k -Djava.security.manager -Dfile.encoding=UTF-8 -Djava.security.policy==/etc/java_policy -Djava.awt.headless=true Main",
         "seccomp_rule": None,
         "env": ["MALLOC_ARENA_MAX=1"] + default_env
     }
