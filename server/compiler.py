@@ -21,6 +21,7 @@ class Compiler(object):
         result = _judger.run(max_cpu_time=compile_config["max_cpu_time"],
                              max_real_time=compile_config["max_real_time"],
                              max_memory=compile_config["max_memory"],
+                             max_stack=128 * 1024 * 1024,
                              max_output_size=1024 * 1024,
                              max_process_number=_judger.UNLIMITED,
                              exe_path=_command[0],
