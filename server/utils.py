@@ -28,11 +28,11 @@ def server_info():
 
 
 def get_token():
-    token = os.environ.get("TOKEN")
+    token = os.environ.get("token")
     if token:
         return token
     else:
-        raise JudgeClientError("ENV TOKEN  not found")
+        raise JudgeClientError("ENV token not found")
 
 
 token = hashlib.sha256(get_token()).hexdigest()

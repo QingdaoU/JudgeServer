@@ -11,10 +11,10 @@ from utils import server_info, logger, token
 
 class JudgeService(object):
     def __init__(self):
-         # this container's ip and port, if these are not set, web server will think it's a linked container
+        # this container's ip and port, if these are not set, web server will think it's a linked container
         self.service_url = os.environ.get("service_url")
 
-       # exists if docker link oj_web_server:oj_web_server
+        # exists if docker link oj_web_server:oj_web_server
         self.service_discovery_host = os.environ.get("OJ_WEB_SERVER_PORT_8080_TCP_ADDR")
         self.service_discovery_port = os.environ.get("OJ_WEB_SERVER_PORT_8080_TCP_PORT")
         self.service_discovery_url = os.environ.get("service_discovery_url", "")
