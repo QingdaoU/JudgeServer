@@ -21,6 +21,6 @@ services:
         environment:
             - service_discovery_url=https://virusdefender.net/service.php
             - service_url=http://1.2.3.4:12358
-            - TOKEN=YOUR_PRIVATE_TOKEN_HERE
+            - TOKEN=YOUR_TOKEN_HERE
         ports:
             - "0.0.0.0:12358:8080"
