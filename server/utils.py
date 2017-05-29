@@ -5,8 +5,8 @@ import psutil
 import socket
 import logging
 import hashlib
+import os
 
-from config import TOKEN_FILE_PATH
 from exception import JudgeClientError
 
 
@@ -28,11 +28,11 @@ def server_info():
 
 
 def get_token():
-    try:
-        with open(TOKEN_FILE_PATH, "r") as f:
-            return f.read().strip()
-    except IOError:
-        raise JudgeClientError("token.txt not found")
+    token = os.environ.get("TOKEN")
+    if token:
+        return token
+    else:
+        raise JudgeClientError("ENV TOKEN  not found")
 
 
 token = hashlib.sha256(get_token()).hexdigest()

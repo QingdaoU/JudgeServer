@@ -5,7 +5,8 @@ services:
 before_install:
     - sudo mkdir -p /data/log
     - pip install requests
-    - echo "token" > token.txt
+env:
+    - TOKEN=token
 script:
     - docker pull qduoj/judge_server
     - cp docker-compose.example.yml docker-compose.yml
