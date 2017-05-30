@@ -18,9 +18,9 @@ services:
             - $PWD/tests/test_case:/test_case
             - /data/log:/log
             - $PWD/server:/code:ro
-            - $PWD/token.txt:/token.txt
         environment:
             - service_discovery_url=https://virusdefender.net/service.php
             - service_url=http://1.2.3.4:12358
+            - token=YOUR_TOKEN_HERE
         ports:
             - "0.0.0.0:12358:8080"
