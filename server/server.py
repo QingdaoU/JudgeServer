@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import unicode_literals
-
 import json
 import os
 import shutil
@@ -25,7 +22,7 @@ class InitSubmissionEnv(object):
     def __enter__(self):
         try:
             os.mkdir(self.path)
-            os.chmod(self.path, 0777)
+            os.chmod(self.path, 0o777)
         except Exception as e:
             logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
@@ -58,13 +55,13 @@ class JudgeServer(object):
                              spj_compile_config=spj_compile_config,
                              test_case_id=test_case_id)
 
-        with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
+        with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=submission_id) as submission_dir:
             if compile_config:
                 src_path = os.path.join(submission_dir, compile_config["src_name"])
 
                 # write source code into file
-                with open(src_path, "w") as f:
-                    f.write(src.encode("utf-8"))
+                with open(src_path, "w", encoding="utf-8") as f:
+                    f.write(src)
 
                 # compile source code, return exe file path
                 exe_path = Compiler().compile(compile_config=compile_config,
@@ -72,8 +69,8 @@ class JudgeServer(object):
                                               output_dir=submission_dir)
             else:
                 exe_path = os.path.join(submission_dir, run_config["exe_name"])
-                with open(exe_path, "w") as f:
-                    f.write(src.encode("utf-8"))
+                with open(exe_path, "w", encoding="utf-8") as f:
+                    f.write(src)
 
             judge_client = JudgeClient(run_config=language_config["run"],
                                        exe_path=exe_path,
@@ -96,8 +93,8 @@ class JudgeServer(object):
 
         # if spj source code not found, then write it into file
         if not os.path.exists(spj_src_path):
-            with open(spj_src_path, "w") as f:
-                f.write(src.encode("utf-8"))
+            with open(spj_src_path, "w", encoding="utf-8") as f:
+                f.write(src)
         try:
             Compiler().compile(compile_config=spj_compile_config,
                                src_path=spj_src_path,
@@ -114,10 +111,10 @@ class JudgeServer(object):
                 raise TokenVerificationFailed("invalid token")
             if web.data():
                 try:
-                    data = json.loads(web.data())
+                    data = json.loads(web.data().decode("utf-8"))
                 except Exception as e:
-                    logger.info(web.data())
-                    return {"ret": "ServerError", "data": "invalid json"}
+                    logger.error(web.data())
+                    return json.dumps({"ret": "ServerError", "data": "invalid json"})
             else:
                 data = {}
 
@@ -140,7 +137,7 @@ class JudgeServer(object):
             logger.exception(e)
             ret = dict()
             ret["err"] = "JudgeClientError"
-            ret["data"] =e.__class__.__name__ + ":" + e.message
+            ret["data"] =e.__class__.__name__ + ":" + str(e)
             return json.dumps(ret)
 
 

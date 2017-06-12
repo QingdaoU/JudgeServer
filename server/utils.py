@@ -1,5 +1,3 @@
-# coding=utf-8
-from __future__ import unicode_literals
 import _judger
 import psutil
 import socket
@@ -35,5 +33,5 @@ def get_token():
         raise JudgeClientError("ENV token not found")
 
 
-token = hashlib.sha256(get_token()).hexdigest()
+token = hashlib.sha256(get_token().encode("utf-8")).hexdigest()
 

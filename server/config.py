@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import unicode_literals
-
 import grp
 import os
 import pwd
@@ -8,8 +5,8 @@ import pwd
 JUDGER_WORKSPACE_BASE = "/judger_run"
 LOG_BASE = "/log"
 
-COMPILER_LOG_PATH = os.path.join(LOG_BASE, "compile.log").encode("utf-8")
-JUDGER_RUN_LOG_PATH = os.path.join(LOG_BASE, "judger.log").encode("utf-8")
+COMPILER_LOG_PATH = os.path.join(LOG_BASE, "compile.log")
+JUDGER_RUN_LOG_PATH = os.path.join(LOG_BASE, "judger.log")
 
 RUN_USER_UID = pwd.getpwnam("nobody").pw_uid
 RUN_GROUP_GID = grp.getgrnam("nogroup").gr_gid

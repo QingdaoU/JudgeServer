@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import unicode_literals
-
 import json
 import os
 
@@ -29,8 +26,8 @@ class Compiler(object):
                              input_path=src_path,
                              output_path=compiler_out,
                              error_path=compiler_out,
-                             args=[item.encode("utf-8") for item in _command[1::]],
-                             env=[("PATH=" + os.getenv("PATH")).encode("utf-8")],
+                             args=_command[1::],
+                             env=["PATH=" + os.getenv("PATH")],
                              log_path=COMPILER_LOG_PATH,
                              seccomp_rule_name=None,
                              uid=COMPILER_USER_UID,
@@ -38,12 +35,12 @@ class Compiler(object):
 
         if result["result"] != _judger.RESULT_SUCCESS:
             if os.path.exists(compiler_out):
-                with open(compiler_out) as f:
+                with open(compiler_out, encoding="utf-8") as f:
                     error = f.read().strip()
                     os.remove(compiler_out)
                     if error:
                         raise CompileError(error)
-            raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
+            raise CompileError("Compiler runtime error, info: %s" % json.dumps(result))
         else:
             os.remove(compiler_out)
             return exe_path
