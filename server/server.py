@@ -131,7 +131,7 @@ class JudgeServer(object):
             logger.exception(e)
             ret = dict()
             ret["err"] = e.__class__.__name__
-            ret["data"] = e.message
+            ret["data"] = str(e)
             return json.dumps(ret)
         except Exception as e:
             logger.exception(e)
