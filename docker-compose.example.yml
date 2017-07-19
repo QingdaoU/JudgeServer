@@ -1,7 +1,7 @@
 version: "2"
 services:
     judge_server:
-        image: qduoj/judge_server
+        image: registry.cn-hangzhou.aliyuncs.com/v-image/judge_server
         read_only: true
         cap_drop:
             - SETPCAP
