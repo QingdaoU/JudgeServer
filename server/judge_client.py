@@ -61,7 +61,7 @@ class JudgeClient(object):
         with open(user_output_file, "r") as f:
             content = f.read()
         output_md5 = hashlib.md5(content.rstrip()).hexdigest()
-        result = output_md5 == self._get_test_case_file_info(test_case_file_id)["striped_output_md5"]
+        result = output_md5 == self._get_test_case_file_info(test_case_file_id)["stripped_output_md5"]
         return output_md5, result
 
     def _spj(self, in_file_path, user_out_file_path):

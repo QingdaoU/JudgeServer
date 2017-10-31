@@ -1,7 +1,7 @@
 version: "2"
 services:
     judge_server:
-        image: registry.cn-hangzhou.aliyuncs.com/v-image/judge_server
+        image: registry.cn-hangzhou.aliyuncs.com/onlinejudge/judge_server
         read_only: true
         cap_drop:
             - SETPCAP
@@ -15,12 +15,12 @@ services:
             - /judger_run:exec,mode=777
             - /spj:exec,mode=777
         volumes:
-            - $PWD/tests/test_case:/test_case
+            - $PWD/tests/test_case:/test_case:ro
             - /data/log:/log
             - $PWD/server:/code:ro
         environment:
-            - service_discovery_url=https://virusdefender.net/service.php
-            - service_url=http://1.2.3.4:12358
-            - token=YOUR_TOKEN_HERE
+            - service_discovery_url=http://127.0.0.1:8000/api/judge_server_heartbeat
+            - service_url=http://127.0.0.1:12358
+            - TOKEN=YOUR_TOKEN_HERE
         ports:
             - "0.0.0.0:12358:8080"
