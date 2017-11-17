@@ -53,10 +53,13 @@ class JudgeServer(object):
         run_config = language_config["run"]
         submission_id = str(uuid.uuid4())
 
-        if spj_version:
-            self.compile_spj(spj_version=spj_version, src=spj_src,
-                             spj_compile_config=spj_compile_config,
-                             test_case_id=test_case_id)
+        if spj_version and spj_config:
+            spj_exe_path = os.path.join(SPJ_EXE_DIR, spj_config["exe_name"].format(spj_version=spj_version))
+            # spj src has not been compiled
+            if not os.path.isfile(spj_exe_path):
+                logger.warning("%s does not exists, spj src will be recompiled")
+                self.compile_spj(spj_version=spj_version, src=spj_src,
+                             spj_compile_config=spj_compile_config)
 
         with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
             if compile_config:
@@ -88,7 +91,7 @@ class JudgeServer(object):
 
             return run_result
 
-    def compile_spj(self, spj_version, src, spj_compile_config, test_case_id):
+    def compile_spj(self, spj_version, src, spj_compile_config):
         spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_version)
         spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_version)
 
