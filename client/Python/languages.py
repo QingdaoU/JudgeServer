@@ -80,7 +80,7 @@ py2_lang_config = {
     },
     "run": {
         "command": "/usr/bin/python {exe_path}",
-        "seccomp_rule": None,
+        "seccomp_rule": "general",
         "env": default_env
     }
 }
@@ -96,7 +96,7 @@ py3_lang_config = {
     },
     "run": {
         "command": "/usr/bin/python3 {exe_path}",
-        "seccomp_rule": None,
+        "seccomp_rule": "general",
         "env": ["PYTHONIOENCODING=UTF-8"] + default_env
     }
 }
