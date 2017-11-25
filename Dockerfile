@@ -1,7 +1,7 @@
-FROM ubuntu:16.04
+FROM registry.docker-cn.com/library/ubuntu:16.04
 ENV DEBIAN_FRONTEND noninteractive
 
-COPY java_policy /etc
+COPY build/java_policy /etc
 
 RUN buildDeps='software-properties-common git libtool cmake python-dev python-pip libseccomp-dev' && \
     apt-get update && apt-get install -y python python-pkg-resources gcc g++ $buildDeps && \
@@ -16,8 +16,7 @@ RUN mkdir -p /judger_run /test_case /log /code && \
     useradd -r compiler
 
 HEALTHCHECK --interval=5s --retries=3 CMD python /code/service.py
+ADD server /code
 WORKDIR /code
-
-VOLUME ["/code"]
 EXPOSE 8080
 CMD /bin/bash /code/run.sh
