@@ -23,12 +23,12 @@ class JudgeClient
      * 调用判题 api
      * @param string $src 提交的源代码
      * @param string $language 使用的编程语言
-     * @param string $test_case_id test_case_id
+     * @param string $testCaseId test_case_id
      * @param array $config 额外配置
      * @return array
      * @throws Exception
      */
-    public function judge($src, $language, $test_case_id, $config = [])
+    public function judge($src, $language, $testCaseId, $config = [])
     {
         $languageConfig = static::getLanguageConfigByLanguage($language);
 
@@ -39,7 +39,7 @@ class JudgeClient
         $default = [
             'language_config' => $languageConfig,
             'src' => $src,
-            'test_case_id' => $test_case_id,
+            'test_case_id' => $testCaseId,
             'max_cpu_time' => $languageConfig['compile']['max_cpu_time'],
             'max_memory' => $languageConfig['compile']['max_memory'],
             'spj_version' => null,
@@ -51,12 +51,12 @@ class JudgeClient
         return $this->post($this->serverBaseUrl . '/judge', array_merge($default, $config));
     }
 
-    public function compileSpj($src, $spj_version, $spj_compile_config)
+    public function compileSpj($src, $spjVersion, $spjCompileConfig)
     {
         $data = [
             'src' => $src,
-            'spj_version' => $spj_version,
-            'spj_compile_config' => $spj_compile_config,
+            'spj_version' => $spjVersion,
+            'spj_compile_config' => $spjCompileConfig,
         ];
         return $this->post($this->serverBaseUrl . '/compile_spj', $data);
     }

@@ -4,7 +4,7 @@ require('JudgeClient.php');
 
 $token = 'YOUR_TOKEN_HERE';
 
-$c_src = <<<'CODE'
+$cSrc = <<<'CODE'
 #include <stdio.h>
 int main(){
     int a, b;
@@ -14,14 +14,14 @@ int main(){
 }
 CODE;
 
-$c_spj_src = <<<'CODE'
+$cSpjSrc = <<<'CODE'
 #include <stdio.h>
 int main(){
     return 1;
 }
 CODE;
 
-$cpp_src = <<<'CODE'
+$cppSrc = <<<'CODE'
 #include <iostream>
 
 using namespace std;
@@ -35,7 +35,7 @@ int main()
 }
 CODE;
 
-$java_src = <<<'CODE'
+$javaSrc = <<<'CODE'
 import java.util.Scanner;
 public class Main{
     public static void main(String[] args){
@@ -47,13 +47,13 @@ public class Main{
 }
 CODE;
 
-$py2_src = <<<'CODE'
+$py2src = <<<'CODE'
 s = raw_input()
 s1 = s.split(" ")
 print int(s1[0]) + int(s1[1])
 CODE;
 
-$py3_src = <<<'CODE'
+$py3src = <<<'CODE'
 s = input()
 s1 = s.split(" ")
 print(int(s1[0]) + int(s1[1]))
@@ -66,29 +66,29 @@ echo "ping:\n";
 print_r($judgeClient->ping());
 
 echo "\n\ncompile_spj:\n";
-print_r($judgeClient->compileSpj($c_spj_src, '2', JudgeClient::getLanguageConfigByKey('c_lang_spj_compile')));
+print_r($judgeClient->compileSpj($cSpjSrc, '2', JudgeClient::getLanguageConfigByKey('c_lang_spj_compile')));
 
 echo "\n\nc_judge:\n";
-print_r($judgeClient->judge($c_src, 'c', 'normal', [
+print_r($judgeClient->judge($cSrc, 'c', 'normal', [
     'output' => true
 ]));
 
 echo "\n\nc_spj_judge:\n";
-print_r($judgeClient->judge($c_src, 'c', 'spj', [
+print_r($judgeClient->judge($cSrc, 'c', 'spj', [
     'spj_version' => '3',
     'spj_config' => JudgeClient::getLanguageConfigByKey('c_lang_spj_config'),
     'spj_compile_config' => JudgeClient::getLanguageConfigByKey('c_lang_spj_compile'),
-    'spj_src' => $c_spj_src,
+    'spj_src' => $cSpjSrc,
 ]));
 
 echo "\n\ncpp_judge:\n";
-print_r($judgeClient->judge($cpp_src, 'cpp', 'normal'));
+print_r($judgeClient->judge($cppSrc, 'cpp', 'normal'));
 
 echo "\n\njava_judge:\n";
-print_r($judgeClient->judge($java_src, 'java', 'normal'));
+print_r($judgeClient->judge($javaSrc, 'java', 'normal'));
 
 echo "\n\npy2_judge:\n";
-print_r($judgeClient->judge($py2_src, 'py2', 'normal'));
+print_r($judgeClient->judge($py2src, 'py2', 'normal'));
 
 echo "\n\npy3_judge:\n";
-print_r($judgeClient->judge($py3_src, 'py3', 'normal'));
+print_r($judgeClient->judge($py3src, 'py3', 'normal'));
