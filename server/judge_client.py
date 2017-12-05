@@ -124,7 +124,7 @@ class JudgeClient(object):
         run_result["output_md5"] = None
         run_result["output"] = None
         if run_result["result"] == _judger.RESULT_SUCCESS:
-            if self._test_case_info["spj"]:
+            if self._test_case_info.get("spj"):
                 if not self._spj_config or not self._spj_version:
                     raise JudgeClientError("spj_config or spj_version not set")
 
