@@ -53,12 +53,15 @@ class JudgeClient(object):
         except ValueError:
             raise JudgeClientError("Bad test case config")
 
+    def _get_test_case_file_info(self, test_case_file_id):
+        return self._test_case_info["test_cases"][test_case_file_id]
+
     def _compare_output(self, test_case_file_id):
         user_output_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
         with open(user_output_file, "r") as f:
             content = f.read()
-        output_md5 = hashlib.md5(content.strip()).hexdigest()
-        result = output_md5 == self._test_case_info["test_cases"][str(test_case_file_id)]["striped_output_md5"]
+        output_md5 = hashlib.md5(content.rstrip()).hexdigest()
+        result = output_md5 == self._get_test_case_file_info(test_case_file_id)["stripped_output_md5"]
         return output_md5, result
 
     def _spj(self, in_file_path, user_out_file_path):
@@ -69,6 +72,7 @@ class JudgeClient(object):
         result = _judger.run(max_cpu_time=self._max_cpu_time * 3,
                              max_real_time=self._max_cpu_time * 9,
                              max_memory=self._max_memory * 3,
+                             max_stack=128 * 1024 * 1024,
                              max_output_size=1024 * 1024 * 1024,
                              max_process_number=_judger.UNLIMITED,
                              exe_path=command[0].encode("utf-8"),
@@ -90,8 +94,8 @@ class JudgeClient(object):
             return SPJ_ERROR
 
     def _judge_one(self, test_case_file_id):
-        in_file = os.path.join(self._test_case_dir, str(test_case_file_id) + ".in").encode("utf-8")
-        user_out_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out").encode("utf-8")
+        in_file = os.path.join(self._test_case_dir, self._get_test_case_file_info(test_case_file_id)["input_name"]).encode("utf-8")
+        user_output_file = os.path.join(self._submission_dir, test_case_file_id + ".out").encode("utf-8")
 
         command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path),
                                                      max_memory=self._max_memory / 1024).split(" ")
@@ -101,12 +105,13 @@ class JudgeClient(object):
         run_result = _judger.run(max_cpu_time=self._max_cpu_time,
                                  max_real_time=self._max_real_time,
                                  max_memory=self._max_memory,
+                                 max_stack=128 * 1024 * 1024,
                                  max_output_size=1024 * 1024 * 1024,
                                  max_process_number=_judger.UNLIMITED,
                                  exe_path=command[0].encode("utf-8"),
                                  input_path=in_file,
-                                 output_path=user_out_file,
-                                 error_path=user_out_file,
+                                 output_path=user_output_file,
+                                 error_path=user_output_file,
                                  args=[item.encode("utf-8") for item in command[1::]],
                                  env=env,
                                  log_path=JUDGER_RUN_LOG_PATH,
@@ -119,11 +124,11 @@ class JudgeClient(object):
         run_result["output_md5"] = None
         run_result["output"] = None
         if run_result["result"] == _judger.RESULT_SUCCESS:
-            if self._test_case_info["spj"]:
+            if self._test_case_info.get("spj"):
                 if not self._spj_config or not self._spj_version:
                     raise JudgeClientError("spj_config or spj_version not set")
 
-                spj_result = self._spj(in_file_path=in_file, user_out_file_path=user_out_file)
+                spj_result = self._spj(in_file_path=in_file, user_out_file_path=user_output_file)
 
                 if spj_result == SPJ_WA:
                     run_result["result"] = _judger.RESULT_WRONG_ANSWER
@@ -138,7 +143,7 @@ class JudgeClient(object):
 
         if self._output:
             try:
-                with open(user_out_file, "r") as f:
+                with open(user_output_file, "r") as f:
                     run_result["output"] = f.read().decode("utf-8")
             except Exception:
                 pass
@@ -148,8 +153,8 @@ class JudgeClient(object):
     def run(self):
         tmp_result = []
         result = []
-        for _ in range(self._test_case_info["test_case_number"]):
-            tmp_result.append(self._pool.apply_async(_run, (self, _ + 1)))
+        for test_case_file_id, _ in self._test_case_info["test_cases"].iteritems():
+            tmp_result.append(self._pool.apply_async(_run, (self, test_case_file_id)))
         self._pool.close()
         self._pool.join()
         for item in tmp_result:

@@ -7,7 +7,6 @@ __pycache__/
 .Python
 env/
 bin/
-build/
 develop-eggs/
 dist/
 eggs/
@@ -37,6 +36,7 @@ coverage.xml
 # Rope
 .ropeproject
 .idea/
+.vscode/
 # Django stuff:
 *.log
 *.pot
@@ -69,3 +69,5 @@ docker-compose.yml
 rsyncd.passwd
 
 node_modules/
+
+token.txt

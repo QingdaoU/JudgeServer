@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import unicode_literals
 
-import hashlib
 import json
 import os
 import shutil
@@ -10,10 +9,10 @@ import uuid
 import web
 
 from compiler import Compiler
-from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COUNTER_FILE_PATH
+from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR
 from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
 from judge_client import JudgeClient
-from utils import server_info, get_token, logger, TaskCounter
+from utils import server_info, logger, token
 
 
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -30,11 +29,9 @@ class InitSubmissionEnv(object):
         except Exception as e:
             logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
-        TaskCounter().update(+1)
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        TaskCounter().update(-1)
         if not DEBUG:
             try:
                 shutil.rmtree(self.path)
@@ -49,13 +46,6 @@ class JudgeServer(object):
         data["action"] = "pong"
         return data
 
-    @property
-    def _token(self):
-        t = get_token()
-        if not t:
-            raise TokenVerificationFailed("token not set")
-        return hashlib.sha256(t).hexdigest()
-
     def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
               spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
         # init
@@ -63,10 +53,13 @@ class JudgeServer(object):
         run_config = language_config["run"]
         submission_id = str(uuid.uuid4())
 
-        if spj_version:
-            self.compile_spj(spj_version=spj_version, src=spj_src,
-                             spj_compile_config=spj_compile_config,
-                             test_case_id=test_case_id)
+        if spj_version and spj_config:
+            spj_exe_path = os.path.join(SPJ_EXE_DIR, spj_config["exe_name"].format(spj_version=spj_version))
+            # spj src has not been compiled
+            if not os.path.isfile(spj_exe_path):
+                logger.warning("%s does not exists, spj src will be recompiled")
+                self.compile_spj(spj_version=spj_version, src=spj_src,
+                             spj_compile_config=spj_compile_config)
 
         with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
             if compile_config:
@@ -98,7 +91,7 @@ class JudgeServer(object):
 
             return run_result
 
-    def compile_spj(self, spj_version, src, spj_compile_config, test_case_id):
+    def compile_spj(self, spj_version, src, spj_compile_config):
         spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_version)
         spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_version)
 
@@ -118,9 +111,9 @@ class JudgeServer(object):
         return "success"
 
     def POST(self):
-        token = web.ctx.env.get("HTTP_X_JUDGE_SERVER_TOKEN", None)
+        _token = web.ctx.env.get("HTTP_X_JUDGE_SERVER_TOKEN", None)
         try:
-            if token != self._token:
+            if _token != token:
                 raise TokenVerificationFailed("invalid token")
             if web.data():
                 try:
@@ -163,9 +156,6 @@ urls = (
 
 if DEBUG:
     logger.info("DEBUG=ON")
-
-# check token
-JudgeServer()._token
 
 app = web.application(urls, globals())
 wsgiapp = app.wsgifunc()

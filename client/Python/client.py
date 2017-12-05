@@ -1,5 +1,5 @@
 # coding=utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 import hashlib
 import json
@@ -7,7 +7,7 @@ import json
 import requests
 
 from languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, \
-    c_lang_spj_compile, py2_lang_config
+    c_lang_spj_compile, py2_lang_config, py3_lang_config
 
 
 class JudgeServerClientError(Exception):
@@ -16,11 +16,12 @@ class JudgeServerClientError(Exception):
 
 class JudgeServerClient(object):
     def __init__(self, token, server_base_url):
-        self.token = hashlib.sha256(token).hexdigest()
+        self.token = hashlib.sha256(token.encode("utf-8")).hexdigest()
         self.server_base_url = server_base_url.rstrip("/")
 
     def _request(self, url, data=None):
-        kwargs = {"headers": {"X-Judge-Server-Token": self.token}}
+        kwargs = {"headers": {"X-Judge-Server-Token": self.token,
+                              "Content-Type": "application/json"}}
         if data:
             kwargs["data"] = json.dumps(data)
         try:
@@ -45,14 +46,14 @@ class JudgeServerClient(object):
                 "output": output}
         return self._request(self.server_base_url + "/judge", data=data)
 
-    def compile_spj(self, src, spj_version, spj_compile_config, test_case_id):
+    def compile_spj(self, src, spj_version, spj_compile_config):
         data = {"src": src, "spj_version": spj_version,
-                "spj_compile_config": spj_compile_config, "test_case_id": test_case_id}
+                "spj_compile_config": spj_compile_config}
         return self._request(self.server_base_url + "/compile_spj", data=data)
 
 
 if __name__ == "__main__":
-    token = hashlib.sha256("token").hexdigest()
+    token = "123456"
 
     c_src = r"""
     #include <stdio.h>
@@ -101,32 +102,47 @@ if __name__ == "__main__":
 s1 = s.split(" ")
 print int(s1[0]) + int(s1[1])"""
 
-    js_src = "console.log(3)"
+    py3_src = """s = input()
+s1 = s.split(" ")
+print(int(s1[0]) + int(s1[1]))"""
 
-    client = JudgeServerClient(token="token", server_base_url="http://123.57.151.42:12358")
-    print client.ping(), "\n\n"
+    client = JudgeServerClient(token=token, server_base_url="http://127.0.0.1:12358")
+    print("ping")
+    print(client.ping(), "\n\n")
 
-    print client.compile_spj(src=c_spj_src, spj_version="2", spj_compile_config=c_lang_spj_compile,
-                             test_case_id="spj"), "\n\n"
+    print("compile_spj")
+    print(client.compile_spj(src=c_spj_src, spj_version="2", spj_compile_config=c_lang_spj_compile
+                             ), "\n\n")
 
-    print client.judge(src=c_src, language_config=c_lang_config,
+    print("c_judge")
+    print(client.judge(src=c_src, language_config=c_lang_config,
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
-                       test_case_id="normal", output=True), "\n\n"
+                       test_case_id="normal", output=True), "\n\n")
 
-    print client.judge(src=cpp_src, language_config=cpp_lang_config,
+    print("cpp_judge")
+    print(client.judge(src=cpp_src, language_config=cpp_lang_config,
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
-                       test_case_id="normal"), "\n\n"
+                       test_case_id="normal"), "\n\n")
 
-    print client.judge(src=java_src, language_config=java_lang_config,
-                       max_cpu_time=1000, max_memory=1024 * 1024 * 1024,
-                       test_case_id="normal"), "\n\n"
+    print("java_judge")
+    print(client.judge(src=java_src, language_config=java_lang_config,
+                       max_cpu_time=1000, max_memory=256 * 1024 * 1024,
+                       test_case_id="normal"), "\n\n")
 
-    print client.judge(src=c_src, language_config=c_lang_config,
+    print("c_spj_judge")
+    print(client.judge(src=c_src, language_config=c_lang_config,
                        max_cpu_time=1000, max_memory=1024 * 1024 * 128,
                        test_case_id="spj",
                        spj_version="3", spj_config=c_lang_spj_config,
-                       spj_compile_config=c_lang_spj_compile, spj_src=c_spj_src), "\n\n"
+                       spj_compile_config=c_lang_spj_compile, spj_src=c_spj_src), "\n\n")
 
-    print client.judge(src=py2_src, language_config=py2_lang_config,
+
+    print("py2_judge")
+    print(client.judge(src=py2_src, language_config=py2_lang_config,
                        max_cpu_time=1000, max_memory=128 * 1024 * 1024,
-                       test_case_id="normal"), "\n\n"
+                       test_case_id="normal"), "\n\n")
+
+    print("py3_judge")
+    print(client.judge(src=py3_src, language_config=py3_lang_config,
+                       max_cpu_time=1000, max_memory=128 * 1024 * 1024,
+                       test_case_id="normal"), "\n\n")

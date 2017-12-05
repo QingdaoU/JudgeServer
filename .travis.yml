@@ -1,0 +1,13 @@
+sudo: required
+language: python
+services:
+    - docker
+before_install:
+    - sudo mkdir -p /data/log
+    - pip install requests
+script:
+    - docker pull qduoj/judge_server
+    - cp docker-compose.example.yml docker-compose.yml
+    - docker-compose up -d
+    - docker ps -a
+    - python tests/tests.py
