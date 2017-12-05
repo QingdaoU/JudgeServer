@@ -66,7 +66,7 @@ echo "ping:\n";
 print_r($judgeClient->ping());
 
 echo "\n\ncompile_spj:\n";
-print_r($judgeClient->compileSpj($c_spj_src, '2', JudgeClient::getLanguageConfigByKey('c_lang_spj_compile'), 'spj'));
+print_r($judgeClient->compileSpj($c_spj_src, '2', JudgeClient::getLanguageConfigByKey('c_lang_spj_compile')));
 
 echo "\n\nc_judge:\n";
 print_r($judgeClient->judge($c_src, 'c', 'normal', [
