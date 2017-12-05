@@ -53,6 +53,12 @@ s1 = s.split(" ")
 print int(s1[0]) + int(s1[1])
 CODE;
 
+$py3_src = <<<'CODE'
+s = input()
+s1 = s.split(" ")
+print(int(s1[0]) + int(s1[1]))
+CODE;
+
 
 $judgeClient = new JudgeClient($token, 'http://127.0.0.1:12358');
 
@@ -81,5 +87,8 @@ print_r($judgeClient->judge($cpp_src, 'cpp', 'normal'));
 echo "\n\njava_judge:\n";
 print_r($judgeClient->judge($java_src, 'java', 'normal'));
 
-echo "\n\npython2_judge:\n";
+echo "\n\npy2_judge:\n";
 print_r($judgeClient->judge($py2_src, 'py2', 'normal'));
+
+echo "\n\npy3_judge:\n";
+print_r($judgeClient->judge($py3_src, 'py3', 'normal'));
