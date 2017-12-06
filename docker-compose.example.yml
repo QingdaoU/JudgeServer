@@ -19,8 +19,8 @@ services:
             - /data/log:/log
             - $PWD/server:/code:ro
         environment:
-            - service_discovery_url=http://127.0.0.1:8000/api/judge_server_heartbeat
-            - service_url=http://127.0.0.1:12358
+            - backend_url=http://backend:8000/api/judge_server_heartbeat
+            - service_url=http://judge-server:12358
             - TOKEN=YOUR_TOKEN_HERE
         ports:
             - "0.0.0.0:12358:8080"
