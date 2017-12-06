@@ -11,8 +11,8 @@ from utils import server_info, logger, token
 
 class JudgeService(object):
     def __init__(self):
-        self.service_url = os.environ["service_url"]
-        self.backend_url = os.environ["backend_url"]
+        self.service_url = os.environ["SERVICE_URL"]
+        self.backend_url = os.environ["BACKEND_URL"]
 
     def _request(self, data):
         try:

@@ -32,7 +32,7 @@ def get_token():
     if token:
         return token
     else:
-        raise JudgeClientError("ENV TOKEN not found")
+        raise JudgeClientError("env 'token' not found")
 
 
 token = hashlib.sha256(get_token()).hexdigest()
