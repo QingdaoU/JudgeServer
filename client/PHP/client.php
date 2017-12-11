@@ -2,24 +2,26 @@
 
 require('JudgeClient.php');
 
-$c_src = <<<EOD
+$token = 'YOUR_TOKEN_HERE';
+
+$cSrc = <<<'CODE'
 #include <stdio.h>
 int main(){
     int a, b;
     scanf("%d%d", &a, &b);
-    printf("%d", a+b);
+    printf("%d\n", a+b);
     return 0;
 }
-EOD;
+CODE;
 
-$c_spj_src = <<<EOD
+$cSpjSrc = <<<'CODE'
 #include <stdio.h>
 int main(){
     return 1;
 }
-EOD;
+CODE;
 
-$cpp_src = <<<EOD
+$cppSrc = <<<'CODE'
 #include <iostream>
 
 using namespace std;
@@ -31,9 +33,9 @@ int main()
     cout << a+b << endl;
     return 0;
 }
-EOD;
+CODE;
 
-$java_src = <<<EOD
+$javaSrc = <<<'CODE'
 import java.util.Scanner;
 public class Main{
     public static void main(String[] args){
@@ -43,32 +45,50 @@ public class Main{
         System.out.println(a + b);
     }
 }
-EOD;
+CODE;
 
-$py2_src = <<<EOD
+$py2src = <<<'CODE'
 s = raw_input()
 s1 = s.split(" ")
 print int(s1[0]) + int(s1[1])
-EOD;
+CODE;
+
+$py3src = <<<'CODE'
+s = input()
+s1 = s.split(" ")
+print(int(s1[0]) + int(s1[1]))
+CODE;
 
 
-$judgeClient = new JudgeClient(hash('sha256', 'token'), 'http://123.57.151.42:12358');
-$languages = require('languages.php');
+$judgeClient = new JudgeClient($token, 'http://127.0.0.1:12358');
 
 echo "ping:\n";
 print_r($judgeClient->ping());
 
 echo "\n\ncompile_spj:\n";
-print_r($judgeClient->compileSpj($c_spj_src, '2', $languages['c_lang_spj_compile'], 'spj'));
+print_r($judgeClient->compileSpj($cSpjSrc, '2', JudgeClient::getLanguageConfigByKey('c_lang_spj_compile')));
 
-echo "\n\njudge c:\n";
-print_r($judgeClient->judge($c_src, $languages['c_lang_config'], 1000, 1024 * 1024 * 128, 'normal', true));
+echo "\n\nc_judge:\n";
+print_r($judgeClient->judge($cSrc, 'c', 'normal', [
+    'output' => true
+]));
 
-echo "\n\njudge cpp:\n";
-print_r($judgeClient->judge($cpp_src, $languages['cpp_lang_config'], 1000, 1024 * 1024 * 128, 'normal'));
+echo "\n\nc_spj_judge:\n";
+print_r($judgeClient->judge($cSrc, 'c', 'spj', [
+    'spj_version' => '3',
+    'spj_config' => JudgeClient::getLanguageConfigByKey('c_lang_spj_config'),
+    'spj_compile_config' => JudgeClient::getLanguageConfigByKey('c_lang_spj_compile'),
+    'spj_src' => $cSpjSrc,
+]));
 
-echo "\n\njudge java:\n";
-print_r($judgeClient->judge($java_src, $languages['java_lang_config'], 1000, 1024 * 1024 * 128, 'normal'));
+echo "\n\ncpp_judge:\n";
+print_r($judgeClient->judge($cppSrc, 'cpp', 'normal'));
 
-echo "\n\njudge python2:\n";
-print_r($judgeClient->judge($py2_src, $languages['py2_lang_config'], 1000, 1024 * 1024 * 128, 'normal'));
+echo "\n\njava_judge:\n";
+print_r($judgeClient->judge($javaSrc, 'java', 'normal'));
+
+echo "\n\npy2_judge:\n";
+print_r($judgeClient->judge($py2src, 'py2', 'normal'));
+
+echo "\n\npy3_judge:\n";
+print_r($judgeClient->judge($py3src, 'py3', 'normal'));
