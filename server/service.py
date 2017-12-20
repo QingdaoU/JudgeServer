@@ -11,17 +11,13 @@ from utils import server_info, logger, token
 
 class JudgeService(object):
     def __init__(self):
-        self.service_url = os.environ.get("service_url")
-        self.service_discovery_url = os.environ.get("service_discovery_url")
-
-        if not self.service_url or not self.service_discovery_url:
-            raise JudgeServiceError("service url or service discovery url not set")
+        self.service_url = os.environ["SERVICE_URL"]
+        self.backend_url = os.environ["BACKEND_URL"]
 
     def _request(self, data):
         try:
-            r = requests.post(self.service_discovery_url, data=json.dumps(data),
-                              headers={"X-JUDGE-SERVER-TOKEN": token,
-                                       "Content-Type": "application/json"}, timeout=5).json()
+            r = requests.post(self.backend_url, json=data,
+                              headers={"X-JUDGE-SERVER-TOKEN": token}, timeout=5).json()
         except Exception as e:
             logger.exception(e)
             raise JudgeServiceError(e.message)
