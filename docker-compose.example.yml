@@ -17,7 +17,7 @@ services:
         volumes:
             - $PWD/tests/test_case:/test_case:ro
             - $PWD/log:/log
-            - $PWD/server:/code:ro
+            # - $PWD/server:/code:ro
         environment:
             - BACKEND_URL=http://backend:8000/api/judge_server_heartbeat
             - SERVICE_URL=http://judge-server:12358
