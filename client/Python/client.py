@@ -53,7 +53,7 @@ class JudgeServerClient(object):
 
 
 if __name__ == "__main__":
-    token = "123456"
+    token = "YOUR_TOKEN_HERE"
 
     c_src = r"""
     #include <stdio.h>

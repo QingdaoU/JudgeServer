@@ -19,4 +19,4 @@ HEALTHCHECK --interval=5s --retries=3 CMD python /code/service.py
 ADD server /code
 WORKDIR /code
 EXPOSE 8080
-CMD /bin/bash /code/run.sh
+ENTRYPOINT /code/entrypoint.sh
