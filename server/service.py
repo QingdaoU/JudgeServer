@@ -16,13 +16,20 @@ class JudgeService(object):
 
     def _request(self, data):
         try:
-            r = requests.post(self.backend_url, json=data,
-                              headers={"X-JUDGE-SERVER-TOKEN": token}, timeout=5).json()
+            resp = requests.post(self.backend_url, json=data,
+                                 headers={"X-JUDGE-SERVER-TOKEN": token,
+                                          "Content-Type": "application/json"}, timeout=5).text
         except Exception as e:
             logger.exception(e)
-            raise JudgeServiceError(e.message)
-        if r["error"]:
-            raise JudgeServiceError(r["data"])
+            raise JudgeServiceError("Heartbeat request failed")
+        try:
+            r = json.loads(resp)
+            if r["error"]:
+                raise JudgeServiceError(r["data"])
+        except Exception as e:
+            logger.exception("Heartbeat failed, response is {}".format(resp))
+            raise JudgeServiceError("Invalid heartbeat response")
+        
 
     def heartbeat(self):
         data = server_info()
