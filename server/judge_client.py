@@ -96,7 +96,7 @@ class JudgeClient(object):
         user_output_file = os.path.join(self._submission_dir, test_case_file_id + ".out")
 
         command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path),
-                                                     max_memory=self._max_memory / 1024).split(" ")
+                                                     max_memory=int(self._max_memory / 1024)).split(" ")
         env = ["PATH=" + os.environ.get("PATH", "")] + self._run_config.get("env", [])
 
         run_result = _judger.run(max_cpu_time=self._max_cpu_time,
