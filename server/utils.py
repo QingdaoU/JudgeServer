@@ -1,17 +1,16 @@
-# coding=utf-8
-from __future__ import unicode_literals
 import _judger
-import psutil
-import socket
-import logging
 import hashlib
+import logging
 import os
+import socket
 
+import psutil
+
+from config import SERVER_LOG_PATH
 from exception import JudgeClientError
 
-
 logger = logging.getLogger(__name__)
-handler = logging.FileHandler("/log/judge_server.log")
+handler = logging.FileHandler(SERVER_LOG_PATH)
 formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -32,8 +31,7 @@ def get_token():
     if token:
         return token
     else:
-        raise JudgeClientError("env 'token' not found")
+        raise JudgeClientError("env 'TOKEN' not found")
 
 
-token = hashlib.sha256(get_token()).hexdigest()
-
+token = hashlib.sha256(get_token().encode("utf-8")).hexdigest()

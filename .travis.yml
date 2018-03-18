@@ -6,8 +6,9 @@ before_install:
     - sudo mkdir -p /data/log
     - pip install requests
 script:
-    - docker pull qduoj/judge_server
+    - docker pull qduoj/judge-server
     - cp docker-compose.example.yml docker-compose.yml
     - docker-compose up -d
     - docker ps -a
+    - sleep 5
     - python tests/tests.py
