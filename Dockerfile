@@ -1,21 +1,20 @@
 FROM registry.docker-cn.com/library/ubuntu:16.04
-ENV DEBIAN_FRONTEND noninteractive
 
 COPY build/java_policy /etc
 
-RUN buildDeps='software-properties-common git libtool cmake python-dev python-pip libseccomp-dev' && \
-    apt-get update && apt-get install -y python python3.5 python-pkg-resources gcc g++ $buildDeps && \
-    add-apt-repository ppa:openjdk-r/ppa && apt-get update && apt-get install -y openjdk-7-jdk && \
-    pip install --no-cache-dir futures psutil gunicorn web.py requests && \
+RUN buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
+    apt-get update && apt-get install -y python python3.5 python-pkg-resources python3-pkg-resources gcc g++ $buildDeps && \
+    add-apt-repository ppa:openjdk-r/ppa && apt-get update && apt-get install -y openjdk-9-jdk-headless && \
+    pip3 install --no-cache-dir psutil gunicorn flask requests && \
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \ 
-    mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python setup.py install && \
+    mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove $buildDeps && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /judger_run /test_case /log /code && \
     useradd -r compiler
 
-HEALTHCHECK --interval=5s --retries=3 CMD python /code/service.py
+HEALTHCHECK --interval=5s --retries=3 CMD python3 /code/service.py
 ADD server /code
 WORKDIR /code
 EXPOSE 8080

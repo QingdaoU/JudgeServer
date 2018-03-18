@@ -1,10 +1,6 @@
-# coding=utf-8
-from __future__ import unicode_literals
-
+import _judger
 import json
 import os
-
-import _judger
 
 from config import COMPILER_LOG_PATH, COMPILER_USER_UID, COMPILER_GROUP_GID
 from exception import CompileError
@@ -24,13 +20,13 @@ class Compiler(object):
                              max_stack=128 * 1024 * 1024,
                              max_output_size=1024 * 1024,
                              max_process_number=_judger.UNLIMITED,
-                             exe_path=_command[0].encode("utf-8"),
+                             exe_path=_command[0],
                              # /dev/null is best, but in some system, this will call ioctl system call
-                             input_path=src_path.encode("utf-8"),
-                             output_path=compiler_out.encode("utf-8"),
-                             error_path=compiler_out.encode("utf-8"),
-                             args=[item.encode("utf-8") for item in _command[1::]],
-                             env=[("PATH=" + os.getenv("PATH")).encode("utf-8")],
+                             input_path=src_path,
+                             output_path=compiler_out,
+                             error_path=compiler_out,
+                             args=_command[1::],
+                             env=["PATH=" + os.getenv("PATH")],
                              log_path=COMPILER_LOG_PATH,
                              seccomp_rule_name=None,
                              uid=COMPILER_USER_UID,
@@ -43,7 +39,7 @@ class Compiler(object):
                     os.remove(compiler_out)
                     if error:
                         raise CompileError(error)
-            raise CompileError("Compiler runtime error, info: %s" % json.dumps(result).decode("utf-8"))
+            raise CompileError("Compiler runtime error, info: %s" % json.dumps(result))
         else:
             os.remove(compiler_out)
             return exe_path

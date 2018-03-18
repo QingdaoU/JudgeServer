@@ -1,9 +1,7 @@
-# coding=utf-8
-from __future__ import unicode_literals
-import os
 import json
+import os
+
 import requests
-import hashlib
 
 from exception import JudgeServiceError
 from utils import server_info, logger, token
@@ -29,7 +27,6 @@ class JudgeService(object):
         except Exception as e:
             logger.exception("Heartbeat failed, response is {}".format(resp))
             raise JudgeServiceError("Invalid heartbeat response")
-        
 
     def heartbeat(self):
         data = server_info()

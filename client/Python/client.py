@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import unicode_literals, print_function
-
 import hashlib
 import json
 
@@ -27,7 +24,7 @@ class JudgeServerClient(object):
         try:
             return requests.post(url, **kwargs).json()
         except Exception as e:
-            raise JudgeServerClientError(e.message)
+            raise JudgeServerClientError(str(e))
 
     def ping(self):
         return self._request(self.server_base_url + "/ping")

@@ -1,21 +1,19 @@
-# coding=utf-8
-from __future__ import unicode_literals
-
 import json
 import os
 import shutil
 import uuid
 
-import web
+from flask import Flask, request, Response
 
 from compiler import Compiler
 from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR
-from exception import TokenVerificationFailed, CompileError, SPJCompileError,JudgeClientError
+from exception import TokenVerificationFailed, CompileError, SPJCompileError, JudgeClientError
 from judge_client import JudgeClient
 from utils import server_info, logger, token
 
-
+app = Flask(__name__)
 DEBUG = os.environ.get("judger_debug") == "1"
+app.debug = DEBUG
 
 
 class InitSubmissionEnv(object):
@@ -25,7 +23,7 @@ class InitSubmissionEnv(object):
     def __enter__(self):
         try:
             os.mkdir(self.path)
-            os.chmod(self.path, 0777)
+            os.chmod(self.path, 0o777)
         except Exception as e:
             logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
@@ -40,26 +38,28 @@ class InitSubmissionEnv(object):
                 raise JudgeClientError("failed to clean runtime dir")
 
 
-class JudgeServer(object):
-    def pong(self):
+class JudgeServer:
+    @classmethod
+    def ping(cls):
         data = server_info()
         data["action"] = "pong"
         return data
 
-    def judge(self, language_config, src, max_cpu_time, max_memory, test_case_id,
+    @classmethod
+    def judge(cls, language_config, src, max_cpu_time, max_memory, test_case_id,
               spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
         # init
         compile_config = language_config.get("compile")
         run_config = language_config["run"]
-        submission_id = str(uuid.uuid4())
+        submission_id = uuid.uuid4().hex
 
         if spj_version and spj_config:
             spj_exe_path = os.path.join(SPJ_EXE_DIR, spj_config["exe_name"].format(spj_version=spj_version))
             # spj src has not been compiled
             if not os.path.isfile(spj_exe_path):
                 logger.warning("%s does not exists, spj src will be recompiled")
-                self.compile_spj(spj_version=spj_version, src=spj_src,
-                             spj_compile_config=spj_compile_config)
+                cls.compile_spj(spj_version=spj_version, src=spj_src,
+                                spj_compile_config=spj_compile_config)
 
         with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
             if compile_config:
@@ -67,7 +67,7 @@ class JudgeServer(object):
 
                 # write source code into file
                 with open(src_path, "w") as f:
-                    f.write(src.encode("utf-8"))
+                    f.write(src)
 
                 # compile source code, return exe file path
                 exe_path = Compiler().compile(compile_config=compile_config,
@@ -76,7 +76,7 @@ class JudgeServer(object):
             else:
                 exe_path = os.path.join(submission_dir, run_config["exe_name"])
                 with open(exe_path, "w") as f:
-                    f.write(src.encode("utf-8"))
+                    f.write(src)
 
             judge_client = JudgeClient(run_config=language_config["run"],
                                        exe_path=exe_path,
@@ -91,7 +91,8 @@ class JudgeServer(object):
 
             return run_result
 
-    def compile_spj(self, spj_version, src, spj_compile_config):
+    @classmethod
+    def compile_spj(cls, spj_version, src, spj_compile_config):
         spj_compile_config["src_name"] = spj_compile_config["src_name"].format(spj_version=spj_version)
         spj_compile_config["exe_name"] = spj_compile_config["exe_name"].format(spj_version=spj_version)
 
@@ -100,7 +101,7 @@ class JudgeServer(object):
         # if spj source code not found, then write it into file
         if not os.path.exists(spj_src_path):
             with open(spj_src_path, "w") as f:
-                f.write(src.encode("utf-8"))
+                f.write(src)
         try:
             Compiler().compile(compile_config=spj_compile_config,
                                src_path=spj_src_path,
@@ -110,56 +111,34 @@ class JudgeServer(object):
             raise SPJCompileError(e.message)
         return "success"
 
-    def POST(self):
-        _token = web.ctx.env.get("HTTP_X_JUDGE_SERVER_TOKEN", None)
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>', methods=["POST"])
+def server(path):
+    if path in ("judge", "ping", "compile_spj"):
+        _token = request.headers.get("X-Judge-Server-Token")
         try:
             if _token != token:
                 raise TokenVerificationFailed("invalid token")
-            if web.data():
-                try:
-                    data = json.loads(web.data())
-                except Exception as e:
-                    logger.info(web.data())
-                    return {"ret": "ServerError", "data": "invalid json"}
-            else:
+            try:
+                data = request.json
+            except Exception:
                 data = {}
-
-            if web.ctx["path"] == "/judge":
-                callback = self.judge
-            elif web.ctx["path"] == "/ping":
-                callback = self.pong
-            elif web.ctx["path"] == "/compile_spj":
-                callback = self.compile_spj
-            else:
-                return json.dumps({"err": "InvalidMethod", "data": None})
-            return json.dumps({"err": None, "data": callback(**data)})
+            ret = {"err": None, "data": getattr(JudgeServer, path)(**data)}
         except (CompileError, TokenVerificationFailed, SPJCompileError, JudgeClientError) as e:
             logger.exception(e)
-            ret = dict()
-            ret["err"] = e.__class__.__name__
-            ret["data"] = e.message
-            return json.dumps(ret)
+            ret = {"err": e.__class__.__name__, "data": e.message}
         except Exception as e:
             logger.exception(e)
-            ret = dict()
-            ret["err"] = "JudgeClientError"
-            ret["data"] =e.__class__.__name__ + ":" + e.message
-            return json.dumps(ret)
-
-
-urls = (
-    "/judge", "JudgeServer",
-    "/ping", "JudgeServer",
-    "/compile_spj", "JudgeServer"
-)
+            ret = {"err": "JudgeClientError", "data": e.__class__.__name__ + " :" + str(e)}
+    else:
+        ret = {"err": "InvalidRequest", "data": "404"}
+    return Response(json.dumps(ret), mimetype='application/json')
 
 
 if DEBUG:
     logger.info("DEBUG=ON")
 
-app = web.application(urls, globals())
-wsgiapp = app.wsgifunc()
-
-# gunicorn -w 4 -b 0.0.0.0:8080 server:wsgiapp
+# gunicorn -w 4 -b 0.0.0.0:8080 server:app
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=DEBUG)

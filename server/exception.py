@@ -1,21 +1,24 @@
-from __future__ import unicode_literals
+class JudgeServerException(Exception):
+    def __init__(self, message):
+        super().__init__()
+        self.message = message
 
 
-class CompileError(Exception):
+class CompileError(JudgeServerException):
     pass
 
 
-class SPJCompileError(CompileError):
+class SPJCompileError(JudgeServerException):
     pass
 
 
-class TokenVerificationFailed(Exception):
+class TokenVerificationFailed(JudgeServerException):
     pass
 
 
-class JudgeClientError(Exception):
+class JudgeClientError(JudgeServerException):
     pass
 
 
-class JudgeServiceError(Exception):
+class JudgeServiceError(JudgeServerException):
     pass
