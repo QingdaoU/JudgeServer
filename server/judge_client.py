@@ -114,7 +114,8 @@ class JudgeClient(object):
                                  log_path=JUDGER_RUN_LOG_PATH,
                                  seccomp_rule_name=self._run_config["seccomp_rule"],
                                  uid=RUN_USER_UID,
-                                 gid=RUN_GROUP_GID)
+                                 gid=RUN_GROUP_GID,
+                                 memory_limit_check_only=self._run_config.get("memory_limit_check_only", 0))
         run_result["test_case"] = test_case_file_id
 
         # if progress exited normally, then we should check output result
