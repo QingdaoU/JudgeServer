@@ -34,7 +34,7 @@ class Compiler(object):
 
         if result["result"] != _judger.RESULT_SUCCESS:
             if os.path.exists(compiler_out):
-                with open(compiler_out) as f:
+                with open(compiler_out, encoding="utf-8") as f:
                     error = f.read().strip()
                     os.remove(compiler_out)
                     if error:

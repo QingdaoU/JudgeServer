@@ -56,7 +56,7 @@ class JudgeClient(object):
 
     def _compare_output(self, test_case_file_id):
         user_output_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
-        with open(user_output_file, "r") as f:
+        with open(user_output_file, "r", encoding="utf-8") as f:
             content = f.read()
         output_md5 = hashlib.md5(content.rstrip().encode("utf-8")).hexdigest()
         result = output_md5 == self._get_test_case_file_info(test_case_file_id)["stripped_output_md5"]
@@ -141,7 +141,7 @@ class JudgeClient(object):
 
         if self._output:
             try:
-                with open(user_output_file, "r") as f:
+                with open(user_output_file, "r", encoding="utf-8") as f:
                     run_result["output"] = f.read()
             except Exception:
                 pass

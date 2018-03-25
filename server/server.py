@@ -66,7 +66,7 @@ class JudgeServer:
                 src_path = os.path.join(submission_dir, compile_config["src_name"])
 
                 # write source code into file
-                with open(src_path, "w") as f:
+                with open(src_path, "w", encoding="utf-8") as f:
                     f.write(src)
 
                 # compile source code, return exe file path
@@ -75,7 +75,7 @@ class JudgeServer:
                                               output_dir=submission_dir)
             else:
                 exe_path = os.path.join(submission_dir, run_config["exe_name"])
-                with open(exe_path, "w") as f:
+                with open(exe_path, "w", encoding="utf-8") as f:
                     f.write(src)
 
             judge_client = JudgeClient(run_config=language_config["run"],
@@ -100,7 +100,7 @@ class JudgeServer:
 
         # if spj source code not found, then write it into file
         if not os.path.exists(spj_src_path):
-            with open(spj_src_path, "w") as f:
+            with open(spj_src_path, "w", encoding="utf-8") as f:
                 f.write(src)
         try:
             Compiler().compile(compile_config=spj_compile_config,
