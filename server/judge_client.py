@@ -92,7 +92,8 @@ class JudgeClient(object):
             return SPJ_ERROR
 
     def _judge_one(self, test_case_file_id):
-        in_file = os.path.join(self._test_case_dir, self._get_test_case_file_info(test_case_file_id)["input_name"])
+        test_case_info = self._get_test_case_file_info(test_case_file_id)
+        in_file = os.path.join(self._test_case_dir, test_case_info["input_name"])
         user_output_file = os.path.join(self._submission_dir, test_case_file_id + ".out")
 
         command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path),
@@ -103,7 +104,7 @@ class JudgeClient(object):
                                  max_real_time=self._max_real_time,
                                  max_memory=self._max_memory,
                                  max_stack=128 * 1024 * 1024,
-                                 max_output_size=1024 * 1024 * 1024,
+                                 max_output_size=max(test_case_info["output_size"] * 2, 1024 * 1024 * 2),
                                  max_process_number=_judger.UNLIMITED,
                                  exe_path=command[0],
                                  input_path=in_file,
