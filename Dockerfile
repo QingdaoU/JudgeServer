@@ -9,10 +9,8 @@ RUN buildDeps='software-properties-common git libtool cmake python-dev python3-p
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \ 
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove $buildDeps && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /judger_run /test_case /log /code && \
-    useradd -r compiler
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /code && useradd -r compiler
 
 HEALTHCHECK --interval=5s --retries=3 CMD python3 /code/service.py
 ADD server /code

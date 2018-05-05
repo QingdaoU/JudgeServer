@@ -12,8 +12,6 @@ services:
             - FSETID
         tmpfs:
             - /tmp
-            - /judger_run:exec,mode=777
-            - /spj:exec,mode=777
         volumes:
             - $PWD/tests/test_case:/test_case:ro
             - $PWD/log:/log

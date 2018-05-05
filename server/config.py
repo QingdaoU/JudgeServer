@@ -3,7 +3,7 @@ import pwd
 
 import grp
 
-JUDGER_WORKSPACE_BASE = "/judger_run"
+JUDGER_WORKSPACE_BASE = "/judger/run"
 LOG_BASE = "/log"
 
 COMPILER_LOG_PATH = os.path.join(LOG_BASE, "compile.log")
@@ -17,5 +17,5 @@ COMPILER_USER_UID = pwd.getpwnam("compiler").pw_uid
 COMPILER_GROUP_GID = grp.getgrnam("compiler").gr_gid
 
 TEST_CASE_DIR = "/test_case"
-SPJ_SRC_DIR = "/spj"
-SPJ_EXE_DIR = "/spj"
+SPJ_SRC_DIR = "/judger/spj"
+SPJ_EXE_DIR = "/judger/spj"

@@ -71,3 +71,4 @@ rsyncd.passwd
 node_modules/
 
 token.txt
+run/
