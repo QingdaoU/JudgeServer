@@ -104,7 +104,7 @@ class JudgeClient(object):
                                  max_real_time=self._max_real_time,
                                  max_memory=self._max_memory,
                                  max_stack=128 * 1024 * 1024,
-                                 max_output_size=max(test_case_info["output_size"] * 2, 1024 * 1024 * 2),
+                                 max_output_size=max(test_case_info.get("output_size", 0) * 2, 1024 * 1024 * 16),
                                  max_process_number=_judger.UNLIMITED,
                                  exe_path=command[0],
                                  input_path=in_file,
