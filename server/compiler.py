@@ -14,6 +14,7 @@ class Compiler(object):
         compiler_out = os.path.join(output_dir, "compiler.out")
         _command = command.split(" ")
 
+        os.chdir(output_dir)
         result = _judger.run(max_cpu_time=compile_config["max_cpu_time"],
                              max_real_time=compile_config["max_real_time"],
                              max_memory=compile_config["max_memory"],
