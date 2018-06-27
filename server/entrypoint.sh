@@ -1,6 +1,6 @@
 #!/bin/bash
 rm -rf /judger/*
-mkdir -p /judger/run /judger/spj
+mkdir -p /judger/run /judger/spj /judger/socks
 chown compiler:compiler /judger/spj
 core=$(grep --count ^processor /proc/cpuinfo)
 n=$(($core*2))

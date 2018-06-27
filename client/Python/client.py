@@ -43,6 +43,16 @@ class JudgeServerClient(object):
                 "output": output}
         return self._request(self.server_base_url + "/judge", data=data)
 
+    def debug_run(self, src, language_config, max_cpu_time, max_real_time, max_memory, submission_id):
+        data = {"language_config": language_config,
+                "src": src,
+                "max_cpu_time": max_cpu_time,
+                "max_real_time": max_real_time,
+                "max_memory": max_memory,
+                "submission_id": submission_id,
+                }
+        return self._request(self.server_base_url + "/debug_run", data=data)
+
     def compile_spj(self, src, spj_version, spj_compile_config):
         data = {"src": src, "spj_version": spj_version,
                 "spj_compile_config": spj_compile_config}
@@ -110,6 +120,11 @@ print(int(s1[0]) + int(s1[1]))"""
     print("compile_spj")
     print(client.compile_spj(src=c_spj_src, spj_version="2", spj_compile_config=c_lang_spj_compile
                              ), "\n\n")
+
+    # print(client.debug_run(src=c_src, language_config=c_lang_config,
+    #                        max_cpu_time=1000, max_real_time=30000, max_memory=1024 * 1024 * 128,
+    #                        submission_id="123"), "\n\n")
+
 
     print("c_judge")
     print(client.judge(src=c_src, language_config=c_lang_config,

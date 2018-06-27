@@ -19,3 +19,4 @@ COMPILER_GROUP_GID = grp.getgrnam("compiler").gr_gid
 TEST_CASE_DIR = "/test_case"
 SPJ_SRC_DIR = "/judger/spj"
 SPJ_EXE_DIR = "/judger/spj"
+IO_SOCK_DIR = "/judger/socks"

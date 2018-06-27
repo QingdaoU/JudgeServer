@@ -2,14 +2,16 @@ import json
 import os
 import shutil
 import uuid
+import time
 
-from flask import Flask, request, Response
+from flask import Flask, Response, request
+
 
 from compiler import Compiler
-from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR
-from exception import TokenVerificationFailed, CompileError, SPJCompileError, JudgeClientError
-from judge_client import JudgeClient
-from utils import server_info, logger, token
+from config import JUDGER_WORKSPACE_BASE, SPJ_EXE_DIR, SPJ_SRC_DIR, IO_SOCK_DIR
+from exception import CompileError, JudgeClientError, SPJCompileError, TokenVerificationFailed
+from judge_client import DebugRunClient, JudgeClient
+from utils import logger, server_info, token
 
 app = Flask(__name__)
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -46,6 +48,55 @@ class JudgeServer:
         return data
 
     @classmethod
+    def debug_run(cls, language_config, src, max_cpu_time, max_real_time, max_memory, submission_id):
+        # init
+        compile_config = language_config.get("compile")
+        run_config = language_config["run"]
+        # 等待 io sock 的建立
+        wait = 10
+        io_sock_path = os.path.join(IO_SOCK_DIR, submission_id)
+        while wait:
+            if not os.path.exists(io_sock_path):
+                time.sleep(1)
+                wait -= 1
+            else:
+                break
+        else:
+            raise ValueError("IO Sock not found")
+
+        with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
+            exe_path = cls._compile(submission_dir, compile_config=compile_config, run_config=run_config, src=src)
+
+            judge_client = DebugRunClient(run_config=language_config["run"],
+                                          exe_path=exe_path,
+                                          max_cpu_time=max_cpu_time,
+                                          max_real_time=max_real_time,
+                                          max_memory=max_memory,
+                                          submission_dir=submission_dir,
+                                          io_sock_path="unix:" + io_sock_path)
+            run_result = judge_client.run()
+            return run_result
+
+    @classmethod
+    def _compile(cls, submission_dir, compile_config, run_config, src):
+        if compile_config:
+            src_path = os.path.join(submission_dir, compile_config["src_name"])
+
+            # write source code into file
+            with open(src_path, "w", encoding="utf-8") as f:
+                f.write(src)
+
+            # compile source code, return exe file path
+            exe_path = Compiler().compile(compile_config=compile_config,
+                                          src_path=src_path,
+                                          output_dir=submission_dir)
+        else:
+            exe_path = os.path.join(submission_dir, run_config["exe_name"])
+            with open(exe_path, "w", encoding="utf-8") as f:
+                f.write(src)
+        return exe_path
+
+    @classmethod
     def judge(cls, language_config, src, max_cpu_time, max_memory, test_case_id,
               spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
         # init
@@ -62,21 +113,7 @@ class JudgeServer:
                                 spj_compile_config=spj_compile_config)
 
         with InitSubmissionEnv(JUDGER_WORKSPACE_BASE, submission_id=str(submission_id)) as submission_dir:
-            if compile_config:
-                src_path = os.path.join(submission_dir, compile_config["src_name"])
-
-                # write source code into file
-                with open(src_path, "w", encoding="utf-8") as f:
-                    f.write(src)
-
-                # compile source code, return exe file path
-                exe_path = Compiler().compile(compile_config=compile_config,
-                                              src_path=src_path,
-                                              output_dir=submission_dir)
-            else:
-                exe_path = os.path.join(submission_dir, run_config["exe_name"])
-                with open(exe_path, "w", encoding="utf-8") as f:
-                    f.write(src)
+            exe_path = cls._compile(submission_dir, compile_config=compile_config, run_config=run_config, src=src)
 
             judge_client = JudgeClient(run_config=language_config["run"],
                                        exe_path=exe_path,
@@ -115,7 +152,7 @@ class JudgeServer:
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>', methods=["POST"])
 def server(path):
-    if path in ("judge", "ping", "compile_spj"):
+    if path in ("judge", "debug_run", "ping", "compile_spj"):
         _token = request.headers.get("X-Judge-Server-Token")
         try:
             if _token != token:
