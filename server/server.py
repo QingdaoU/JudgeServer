@@ -102,10 +102,14 @@ class JudgeServer:
         if not os.path.exists(spj_src_path):
             with open(spj_src_path, "w", encoding="utf-8") as f:
                 f.write(src)
+            os.chown(spj_src_path, 0, COMPILER_GROUP_GID)
+            os.chmod(spj_src_path, 0o660)
+
         try:
-            Compiler().compile(compile_config=spj_compile_config,
-                               src_path=spj_src_path,
-                               output_dir=SPJ_EXE_DIR)
+            exe_path = Compiler().compile(compile_config=spj_compile_config,
+                                          src_path=spj_src_path,
+                                          output_dir=SPJ_EXE_DIR)
+            os.chmod(exe_path, 0o771)
         # turn common CompileError into SPJCompileError
         except CompileError as e:
             raise SPJCompileError(e.message)
