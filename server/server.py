@@ -6,7 +6,7 @@ import uuid
 from flask import Flask, request, Response
 
 from compiler import Compiler
-from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR
+from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COMPILER_GROUP_GID
 from exception import TokenVerificationFailed, CompileError, SPJCompileError, JudgeClientError
 from judge_client import JudgeClient
 from utils import server_info, logger, token
@@ -23,7 +23,8 @@ class InitSubmissionEnv(object):
     def __enter__(self):
         try:
             os.mkdir(self.path)
-            os.chmod(self.path, 0o777)
+            os.chown(self.path, 0, COMPILER_GROUP_GID)
+            os.chmod(self.path, 0o771)
         except Exception as e:
             logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
@@ -102,10 +103,14 @@ class JudgeServer:
         if not os.path.exists(spj_src_path):
             with open(spj_src_path, "w", encoding="utf-8") as f:
                 f.write(src)
+            os.chown(spj_src_path, 0, COMPILER_GROUP_GID)
+            os.chmod(spj_src_path, 0o660)
+
         try:
-            Compiler().compile(compile_config=spj_compile_config,
-                               src_path=spj_src_path,
-                               output_dir=SPJ_EXE_DIR)
+            exe_path = Compiler().compile(compile_config=spj_compile_config,
+                                          src_path=spj_src_path,
+                                          output_dir=SPJ_EXE_DIR)
+            os.chmod(exe_path, 0o771)
         # turn common CompileError into SPJCompileError
         except CompileError as e:
             raise SPJCompileError(e.message)
