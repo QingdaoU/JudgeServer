@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 import psutil
 
-from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, RUN_GROUP_GID, RUN_USER_UID, SPJ_EXE_DIR
+from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, RUN_GROUP_GID, RUN_USER_UID, SPJ_EXE_DIR, SPJ_USER_UID, SPJ_GROUP_GID, RUN_GROUP_GID
 from exception import JudgeClientError
 
 SPJ_WA = 1
@@ -63,6 +63,12 @@ class JudgeClient(object):
         return output_md5, result
 
     def _spj(self, in_file_path, user_out_file_path):
+        # by default, submission dir is compiler:code 710, we should change it for
+        # spj user to read user output file
+        os.chown(self._submission_dir, SPJ_USER_UID, 0)
+        os.chmod(self._submission_dir, 0o100)
+        os.chown(user_out_file_path, SPJ_USER_UID, 0)
+        os.chmod(user_out_file_path, 0o400)
         command = self._spj_config["command"].format(exe_path=self._spj_exe,
                                                      in_file_path=in_file_path,
                                                      user_out_file_path=user_out_file_path).split(" ")
@@ -81,8 +87,8 @@ class JudgeClient(object):
                              env=["PATH=" + os.environ.get("PATH", "")],
                              log_path=JUDGER_RUN_LOG_PATH,
                              seccomp_rule_name=seccomp_rule_name,
-                             uid=RUN_USER_UID,
-                             gid=RUN_GROUP_GID)
+                             uid=SPJ_USER_UID,
+                             gid=SPJ_GROUP_GID)
 
         if result["result"] == _judger.RESULT_SUCCESS or \
                 (result["result"] == _judger.RESULT_RUNTIME_ERROR and

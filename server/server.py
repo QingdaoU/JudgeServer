@@ -6,7 +6,7 @@ import uuid
 from flask import Flask, request, Response
 
 from compiler import Compiler
-from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COMPILER_GROUP_GID
+from config import JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COMPILER_USER_UID, SPJ_USER_UID, RUN_USER_UID, RUN_GROUP_GID
 from exception import TokenVerificationFailed, CompileError, SPJCompileError, JudgeClientError
 from judge_client import JudgeClient
 from utils import server_info, logger, token
@@ -23,8 +23,8 @@ class InitSubmissionEnv(object):
     def __enter__(self):
         try:
             os.mkdir(self.path)
-            os.chown(self.path, 0, COMPILER_GROUP_GID)
-            os.chmod(self.path, 0o771)
+            os.chown(self.path, COMPILER_USER_UID, RUN_GROUP_GID)
+            os.chmod(self.path, 0o710)
         except Exception as e:
             logger.exception(e)
             raise JudgeClientError("failed to create runtime dir")
@@ -69,6 +69,8 @@ class JudgeServer:
                 # write source code into file
                 with open(src_path, "w", encoding="utf-8") as f:
                     f.write(src)
+                os.chown(src_path, COMPILER_USER_UID, 0)
+                os.chmod(src_path, 0o400)
 
                 # compile source code, return exe file path
                 exe_path = Compiler().compile(compile_config=compile_config,
@@ -78,6 +80,9 @@ class JudgeServer:
                 exe_path = os.path.join(submission_dir, run_config["exe_name"])
                 with open(exe_path, "w", encoding="utf-8") as f:
                     f.write(src)
+
+            os.chown(exe_path, RUN_USER_UID, 0)
+            os.chmod(exe_path, 0o500)
 
             judge_client = JudgeClient(run_config=language_config["run"],
                                        exe_path=exe_path,
@@ -103,14 +108,15 @@ class JudgeServer:
         if not os.path.exists(spj_src_path):
             with open(spj_src_path, "w", encoding="utf-8") as f:
                 f.write(src)
-            os.chown(spj_src_path, 0, COMPILER_GROUP_GID)
-            os.chmod(spj_src_path, 0o660)
+            os.chown(spj_src_path, COMPILER_USER_UID, 0)
+            os.chmod(spj_src_path, 0o400)
 
         try:
             exe_path = Compiler().compile(compile_config=spj_compile_config,
                                           src_path=spj_src_path,
                                           output_dir=SPJ_EXE_DIR)
-            os.chmod(exe_path, 0o771)
+            os.chown(exe_path, SPJ_USER_UID, 0)
+            os.chmod(exe_path, 0o500)
         # turn common CompileError into SPJCompileError
         except CompileError as e:
             raise SPJCompileError(e.message)
