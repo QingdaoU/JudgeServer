@@ -1,9 +1,4 @@
 #!/bin/bash
-useradd -u 12001 compiler
-useradd -u 12002 code
-useradd -u 12003 spj
-usermod -a -G code spj
-
 rm -rf /judger/*
 mkdir -p /judger/run /judger/spj
 
