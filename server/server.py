@@ -76,8 +76,13 @@ class JudgeServer:
                 exe_path = Compiler().compile(compile_config=compile_config,
                                               src_path=src_path,
                                               output_dir=submission_dir)
-                os.chown(exe_path, RUN_USER_UID, 0)
-                os.chmod(exe_path, 0o500)
+                try:
+                    # Java exe_path is SOME_PATH/Main, but the real path is SOME_PATH/Main.class
+                    # We ignore it temporarily
+                    os.chown(exe_path, RUN_USER_UID, 0)
+                    os.chmod(exe_path, 0o500)
+                except Exception:
+                    pass
             else:
                 exe_path = os.path.join(submission_dir, run_config["exe_name"])
                 with open(exe_path, "w", encoding="utf-8") as f:
