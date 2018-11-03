@@ -18,7 +18,7 @@ services:
             # - $PWD/server:/code:ro
             - $PWD/run:/judger
         environment:
-            - BACKEND_URL=http://backend:8000/api/judge_server_heartbeat
+            - BACKEND_URL=http://backend:80/api/judge_server_heartbeat
             - SERVICE_URL=http://judge-server:12358
             - TOKEN=YOUR_TOKEN_HERE
         ports:
