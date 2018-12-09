@@ -12,6 +12,20 @@ import (
 	"fmt"
 )
 
+// Data 成员的类型参考 https://github.com/QingdaoU/Judger/blob/b6414e7a6715eb013b1ffeb7cfb04626a3ff5b4e/src/runner.h#L73
+type Data struct {
+	CpuTime   int
+	Result    int
+	Memory    int
+	RealTime  int
+	Signal    int
+	Error     int
+	ExitCode  int
+	OutputMd5 string
+	Output    interface{}
+	TestCase  string
+}
+
 type Resp struct {
 	RespData interface{} `json:"data"`
 	RespErr  string      `json:"err"`
@@ -23,6 +37,50 @@ func (resp *Resp) Data() interface{} {
 		return nil
 	}
 	return resp.RespData
+}
+
+func (resp *Resp) StringData() string {
+	if resp == nil {
+		return ""
+	}
+	str, _ := resp.RespData.(string)
+	return str
+}
+
+func (resp *Resp) SliceData() []*Data {
+	if resp == nil {
+		return nil
+	}
+	slice, _ := resp.RespData.([]interface{})
+	data := make([]*Data, 0, len(slice))
+	for _, s := range slice {
+		item, ok := s.(map[string]interface{})
+		if ok {
+			cpuTimeF64, _ := item["cpu_time"].(float64)
+			resultF64, _ := item["result"].(float64)
+			memoryF64, _ := item["memory"].(float64)
+			realTimeF64, _ := item["real_time"].(float64)
+			signalF64, _ := item["signal"].(float64)
+			errorF64, _ := item["error"].(float64)
+			exitCodeF64, _ := item["exit_code"].(float64)
+			outputMd5, _ := item["output_md5"].(string)
+			testCase, _ := item["test_case"].(string)
+			data = append(data, &Data{
+				CpuTime:   int(cpuTimeF64),
+				Result:    int(resultF64),
+				Memory:    int(memoryF64),
+				RealTime:  int(realTimeF64),
+				Signal:    int(signalF64),
+				Error:     int(errorF64),
+				ExitCode:  int(exitCodeF64),
+				OutputMd5: outputMd5,
+				Output:    item["output"],
+				TestCase:  testCase,
+			})
+		}
+
+	}
+	return data
 }
 
 func (resp *Resp) Err() error {

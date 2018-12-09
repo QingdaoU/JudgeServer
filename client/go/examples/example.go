@@ -79,29 +79,29 @@ func main() {
 	fmt.Println()
 
 	fmt.Println("cpp_judge")
-	resp, err = client.JudgeWithRequest(&judge.JudgeRequest{
+	resp, _ = client.JudgeWithRequest(&judge.JudgeRequest{
 		Src:            cppSrc,
 		LanguageConfig: judge.CPPLangConfig,
 		MaxCpuTime:     1000,
 		MaxMemory:      128 * 1024 * 1024,
 		TestCaseId:     "normal",
 	})
-	fmt.Println(resp, err)
+	printSliceData(resp.SliceData())
 	fmt.Println()
 
 	fmt.Println("java_judge")
-	resp, err = client.JudgeWithRequest(&judge.JudgeRequest{
+	resp, _ = client.JudgeWithRequest(&judge.JudgeRequest{
 		Src:            javaSrc,
 		LanguageConfig: judge.JavaLangConfig,
 		MaxCpuTime:     1000,
 		MaxMemory:      256 * 1024 * 1024,
 		TestCaseId:     "normal",
 	})
-	fmt.Println(resp, err)
+	printSliceData(resp.SliceData())
 	fmt.Println()
 
 	fmt.Println("c_spj_judge")
-	resp, err = client.JudgeWithRequest(&judge.JudgeRequest{
+	resp, _ = client.JudgeWithRequest(&judge.JudgeRequest{
 		Src:              cSrc,
 		LanguageConfig:   judge.CLangConfig,
 		MaxCpuTime:       1000,
@@ -112,27 +112,48 @@ func main() {
 		SPJCompileConfig: judge.CLangSPJCompile,
 		SPJSrc:           cSPJSrc,
 	})
-	fmt.Println(resp, err)
+	printSliceData(resp.SliceData())
 	fmt.Println()
 
 	fmt.Println("py2_judge")
-	resp, err = client.JudgeWithRequest(&judge.JudgeRequest{
+	resp, _ = client.JudgeWithRequest(&judge.JudgeRequest{
 		Src:            py2Src,
 		LanguageConfig: judge.PY2LangConfig,
 		MaxCpuTime:     1000,
 		MaxMemory:      128 * 1024 * 1024,
 		TestCaseId:     "normal",
 	})
-	fmt.Println(resp, err)
+	printSliceData(resp.SliceData())
 	fmt.Println()
 
 	fmt.Println("py3_judge")
-	resp, err = client.JudgeWithRequest(&judge.JudgeRequest{
+	resp, _ = client.JudgeWithRequest(&judge.JudgeRequest{
 		Src:            py3Src,
 		LanguageConfig: judge.PY3LangConfig,
 		MaxCpuTime:     1000,
 		MaxMemory:      128 * 1024 * 1024,
 		TestCaseId:     "normal",
 	})
-	fmt.Println(resp, err)
+	printSliceData(resp.SliceData())
+	fmt.Println()
+
+	// CompileError example
+	fmt.Println("CompileError example")
+	resp, err = client.JudgeWithRequest(&judge.JudgeRequest{
+		Src:            "this bad code",
+		LanguageConfig: judge.JavaLangConfig,
+		MaxCpuTime:     1000,
+		MaxMemory:      256 * 1024 * 1024,
+		TestCaseId:     "normal",
+	})
+	// fmt.Println(resp.RespErr) // "CompileError"
+	fmt.Println(resp.StringData()) // 错误信息
+}
+
+func printSliceData(slice []*judge.Data) {
+	fmt.Print("[\n")
+	for _, item := range slice {
+		fmt.Printf("\t%#v,\n", item)
+	}
+	fmt.Print("]\n")
 }
