@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"io/ioutil"
 	"io"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"time"
 	"bytes"
@@ -105,9 +103,8 @@ func parseResp(body []byte) (*Resp, error) {
 }
 
 type Client struct {
-	opts        *options
-	sha256Token string
-	httpClient  *http.Client
+	opts       *options
+	httpClient *http.Client
 }
 
 func (c *Client) request(method, path string, body io.Reader) (resp *Resp, err error) {
@@ -115,7 +112,7 @@ func (c *Client) request(method, path string, body io.Reader) (resp *Resp, err e
 	if err != nil {
 		return
 	}
-	req.Header.Set("X-Judge-Server-Token", c.sha256Token)
+	req.Header.Set("X-Judge-Server-Token", c.opts.sha256Token)
 	req.Header.Set("Content-Type", "application/json")
 
 	httpResp, err := c.httpClient.Do(req)
@@ -162,15 +159,24 @@ func New(endpointURL, token string, timeout time.Duration) *Client {
 	)
 }
 
+func (c *Client) SetOptions(options ...Option) {
+	originTimeout := c.opts.Timeout
+	for _, o := range options {
+		o(c.opts)
+	}
+	if c.opts.Timeout != originTimeout {
+		c.httpClient.Timeout = c.opts.Timeout
+	}
+}
+
 func NewClient(options ...Option) *Client {
 	opts := DefaultOptions
 	for _, o := range options {
 		o(opts)
 	}
-	sha256Token := sha256.Sum256([]byte(opts.Token))
+
 	return &Client{
-		opts:        opts,
-		sha256Token: hex.EncodeToString(sha256Token[:]),
+		opts: opts,
 		httpClient: &http.Client{
 			Timeout: opts.Timeout,
 		},

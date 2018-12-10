@@ -58,12 +58,21 @@ print(int(s1[0]) + int(s1[1]))
 )
 
 func main() {
-	// 创建一个client。 这句代码等价于  judge.New("http://127.0.0.1:12358", "YOUR_TOKEN_HERE", 0)
-	client := judge.NewClient(
-		judge.WithEndpointURL("http://127.0.0.1:12358"),
-		judge.WithToken("YOUR_TOKEN_HERE"),
-		judge.WithTimeout(0),
-	)
+	// 创建一个client。 这句代码等价于
+
+	// 1.
+	//client := judge.NewClient(
+	//	judge.WithEndpointURL("http://127.0.0.1:12358"),
+	//	judge.WithToken("YOUR_TOKEN_HERE"),
+	//	judge.WithTimeout(0),
+	//)
+
+	// 2.
+	// client := judge.New("http://127.0.0.1:12358", "YOUR_TOKEN_HERE", 0)
+
+	// 3.
+	client := judge.NewClient(judge.WithTimeout(0))
+	client.SetOptions(judge.WithEndpointURL("http://127.0.0.1:12358"), judge.WithToken("YOUR_TOKEN_HERE"))
 
 	fmt.Println("ping:")
 	resp, err := client.Ping()
