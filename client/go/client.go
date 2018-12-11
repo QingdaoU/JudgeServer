@@ -14,7 +14,7 @@ import (
 type Data struct {
 	CpuTime   int
 	Result    int
-	Memory    int
+	Memory    int64 // https://github.com/QingdaoU/Judger/blob/b6414e7a6715eb013b1ffeb7cfb04626a3ff5b4e/src/runner.h#L76
 	RealTime  int
 	Signal    int
 	Error     int
@@ -66,7 +66,7 @@ func (resp *Resp) SliceData() []*Data {
 			data = append(data, &Data{
 				CpuTime:   int(cpuTimeF64),
 				Result:    int(resultF64),
-				Memory:    int(memoryF64),
+				Memory:    int64(memoryF64),
 				RealTime:  int(realTimeF64),
 				Signal:    int(signalF64),
 				Error:     int(errorF64),
