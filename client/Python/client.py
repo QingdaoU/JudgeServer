@@ -29,13 +29,17 @@ class JudgeServerClient(object):
     def ping(self):
         return self._request(self.server_base_url + "/ping")
 
-    def judge(self, src, language_config, max_cpu_time, max_memory, test_case_id, spj_version=None, spj_config=None,
+    def judge(self, src, language_config, max_cpu_time, max_memory, test_case_id=None, test_case=None, spj_version=None, spj_config=None,
               spj_compile_config=None, spj_src=None, output=False):
+        if not (test_case or test_case_id) or (test_case and test_case_id):
+            raise ValueError("invalid parameter")
+
         data = {"language_config": language_config,
                 "src": src,
                 "max_cpu_time": max_cpu_time,
                 "max_memory": max_memory,
                 "test_case_id": test_case_id,
+                "test_case": test_case,
                 "spj_version": spj_version,
                 "spj_config": spj_config,
                 "spj_compile_config": spj_compile_config,
@@ -143,3 +147,8 @@ print(int(s1[0]) + int(s1[1]))"""
     print(client.judge(src=py3_src, language_config=py3_lang_config,
                        max_cpu_time=1000, max_memory=128 * 1024 * 1024,
                        test_case_id="normal"), "\n\n")
+
+    print("c_dynamic_input_judge")
+    print(client.judge(src=c_src, language_config=c_lang_config,
+                       max_cpu_time=1000, max_memory=1024 * 1024 * 128,
+                       test_case=[{"input": "1 2\n", "output": "3"}, {"input": "1 4\n", "output": "3"}], output=True), "\n\n")
