@@ -59,8 +59,10 @@ class JudgeClient(object):
         with open(user_output_file, "rb") as f:
             content = f.read()
         output_md5 = hashlib.md5(content.rstrip()).hexdigest()
-        result = output_md5 == self._get_test_case_file_info(test_case_file_id)["stripped_output_md5"]
-        return output_md5, result
+        all_stripped_md5 = hashlib.md5(b'\n'.join([x.rstrip() for x in content.split(b'\n') if len(x) > 0])).hexdigest()
+        is_ac = output_md5 == self._get_test_case_file_info(test_case_file_id)["stripped_output_md5"]
+        is_pe = all_stripped_md5 == self._get_test_case_file_info(test_case_file_id)["all_stripped_output_md5"]
+        return output_md5, is_ac, is_pe
 
     def _spj(self, in_file_path, user_out_file_path):
         os.chown(self._submission_dir, SPJ_USER_UID, 0)
@@ -138,10 +140,12 @@ class JudgeClient(object):
                     run_result["result"] = _judger.RESULT_SYSTEM_ERROR
                     run_result["error"] = _judger.ERROR_SPJ_ERROR
             else:
-                run_result["output_md5"], is_ac = self._compare_output(test_case_file_id)
+                run_result["output_md5"], is_ac, is_pe = self._compare_output(test_case_file_id)
                 # -1 == Wrong Answer
                 if not is_ac:
                     run_result["result"] = _judger.RESULT_WRONG_ANSWER
+                if not is_ac and is_pe:
+                    run_result["result"] = _judger.RESULT_PRESENTATION_ERROR
 
         if self._output:
             try:
