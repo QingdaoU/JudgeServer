@@ -19,15 +19,14 @@ def _run(instance, test_case_file_id):
 
 
 class JudgeClient(object):
-    def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_id,
+    def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_dir,
                  submission_dir, spj_version, spj_config, output=False):
         self._run_config = run_config
         self._exe_path = exe_path
         self._max_cpu_time = max_cpu_time
         self._max_memory = max_memory
         self._max_real_time = self._max_cpu_time * 3
-        self._test_case_id = test_case_id
-        self._test_case_dir = os.path.join(TEST_CASE_DIR, test_case_id)
+        self._test_case_dir = test_case_dir
         self._submission_dir = submission_dir
 
         self._pool = Pool(processes=psutil.cpu_count())
@@ -145,8 +144,8 @@ class JudgeClient(object):
 
         if self._output:
             try:
-                with open(user_output_file, "r", encoding="utf-8") as f:
-                    run_result["output"] = f.read()
+                with open(user_output_file, "rb") as f:
+                    run_result["output"] = f.read().decode("utf-8", errors="backslashreplace")
             except Exception:
                 pass
 

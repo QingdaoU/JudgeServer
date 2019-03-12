@@ -37,8 +37,9 @@ class JudgeService(object):
 
 if __name__ == "__main__":
     try:
-        service = JudgeService()
-        service.heartbeat()
+        if not os.environ.get("DISABLE_HEARTBEAT"):
+            service = JudgeService()
+            service.heartbeat()
         exit(0)
     except Exception as e:
         logger.exception(e)
