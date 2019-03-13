@@ -11,7 +11,7 @@ from config import (JUDGER_WORKSPACE_BASE, SPJ_SRC_DIR, SPJ_EXE_DIR, COMPILER_US
                     RUN_USER_UID, RUN_GROUP_GID, TEST_CASE_DIR)
 from exception import TokenVerificationFailed, CompileError, SPJCompileError, JudgeClientError
 from judge_client import JudgeClient
-from utils import server_info, logger, token
+from utils import server_info, logger, token, ProblemIOMode
 
 app = Flask(__name__)
 DEBUG = os.environ.get("judger_debug") == "1"
@@ -57,7 +57,11 @@ class JudgeServer:
 
     @classmethod
     def judge(cls, language_config, src, max_cpu_time, max_memory, test_case_id=None, test_case=None,
-              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False):
+              spj_version=None, spj_config=None, spj_compile_config=None, spj_src=None, output=False,
+              io_mode=None):
+        if not io_mode:
+            io_mode = {"io_mode": ProblemIOMode.standard}
+
         if not (test_case or test_case_id) or (test_case and test_case_id):
             raise JudgeClientError("invalid parameter")
         # init
@@ -141,7 +145,8 @@ class JudgeServer:
                                        submission_dir=submission_dir,
                                        spj_version=spj_version,
                                        spj_config=spj_config,
-                                       output=output)
+                                       output=output,
+                                       io_mode=io_mode)
             run_result = judge_client.run()
 
             return run_result

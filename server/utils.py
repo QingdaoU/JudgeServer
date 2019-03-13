@@ -34,4 +34,9 @@ def get_token():
         raise JudgeClientError("env 'TOKEN' not found")
 
 
+class ProblemIOMode:
+    standard = "Standard IO"
+    file = "File IO"
+
+
 token = hashlib.sha256(get_token().encode("utf-8")).hexdigest()

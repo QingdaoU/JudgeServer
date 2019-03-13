@@ -8,6 +8,7 @@ import psutil
 
 from config import TEST_CASE_DIR, JUDGER_RUN_LOG_PATH, RUN_GROUP_GID, RUN_USER_UID, SPJ_EXE_DIR, SPJ_USER_UID, SPJ_GROUP_GID, RUN_GROUP_GID
 from exception import JudgeClientError
+from utils import ProblemIOMode
 
 SPJ_WA = 1
 SPJ_AC = 0
@@ -20,7 +21,7 @@ def _run(instance, test_case_file_id):
 
 class JudgeClient(object):
     def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_dir,
-                 submission_dir, spj_version, spj_config, output=False):
+                 submission_dir, spj_version, spj_config, io_mode, output=False):
         self._run_config = run_config
         self._exe_path = exe_path
         self._max_cpu_time = max_cpu_time
@@ -35,6 +36,8 @@ class JudgeClient(object):
         self._spj_version = spj_version
         self._spj_config = spj_config
         self._output = output
+        self._io_mode = io_mode
+
         if self._spj_version and self._spj_config:
             self._spj_exe = os.path.join(SPJ_EXE_DIR,
                                          self._spj_config["exe_name"].format(spj_version=self._spj_version))
@@ -53,8 +56,7 @@ class JudgeClient(object):
     def _get_test_case_file_info(self, test_case_file_id):
         return self._test_case_info["test_cases"][test_case_file_id]
 
-    def _compare_output(self, test_case_file_id):
-        user_output_file = os.path.join(self._submission_dir, str(test_case_file_id) + ".out")
+    def _compare_output(self, test_case_file_id, user_output_file):
         with open(user_output_file, "rb") as f:
             content = f.read()
         output_md5 = hashlib.md5(content.rstrip()).hexdigest()
@@ -96,11 +98,29 @@ class JudgeClient(object):
     def _judge_one(self, test_case_file_id):
         test_case_info = self._get_test_case_file_info(test_case_file_id)
         in_file = os.path.join(self._test_case_dir, test_case_info["input_name"])
-        user_output_file = os.path.join(self._submission_dir, test_case_file_id + ".out")
+
+        if self._io_mode["io_mode"] == ProblemIOMode.file:
+            user_output_dir = os.path.join(self._submission_dir, str(test_case_file_id))
+            os.mkdir(user_output_dir)
+            os.chown(user_output_dir, RUN_USER_UID, RUN_GROUP_GID)
+            os.chmod(user_output_dir, 0o711)
+            os.chdir(user_output_dir)
+            # todo check permission
+            user_output_file = os.path.join(user_output_dir, self._io_mode["output"])
+            real_user_output_file = os.path.join(user_output_dir, "stdio.txt")
+            os.symlink(in_file, os.path.join(user_output_dir, self._io_mode["input"]))
+            kwargs = {"input_path": in_file, "output_path": real_user_output_file, "error_path": real_user_output_file}
+        else:
+            real_user_output_file = user_output_file = os.path.join(self._submission_dir, test_case_file_id + ".out")
+            kwargs = {"input_path": in_file, "output_path": real_user_output_file, "error_path": real_user_output_file}
 
         command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path),
                                                      max_memory=int(self._max_memory / 1024)).split(" ")
         env = ["PATH=" + os.environ.get("PATH", "")] + self._run_config.get("env", [])
+
+        seccomp_rule = self._run_config["seccomp_rule"]
+        if isinstance(seccomp_rule, dict):
+            seccomp_rule = seccomp_rule[self._io_mode["io_mode"]]
 
         run_result = _judger.run(max_cpu_time=self._max_cpu_time,
                                  max_real_time=self._max_real_time,
@@ -109,38 +129,39 @@ class JudgeClient(object):
                                  max_output_size=max(test_case_info.get("output_size", 0) * 2, 1024 * 1024 * 16),
                                  max_process_number=_judger.UNLIMITED,
                                  exe_path=command[0],
-                                 input_path=in_file,
-                                 output_path=user_output_file,
-                                 error_path=user_output_file,
                                  args=command[1::],
                                  env=env,
                                  log_path=JUDGER_RUN_LOG_PATH,
-                                 seccomp_rule_name=self._run_config["seccomp_rule"],
+                                 seccomp_rule_name=seccomp_rule,
                                  uid=RUN_USER_UID,
                                  gid=RUN_GROUP_GID,
-                                 memory_limit_check_only=self._run_config.get("memory_limit_check_only", 0))
+                                 memory_limit_check_only=self._run_config.get("memory_limit_check_only", 0),
+                                 **kwargs)
         run_result["test_case"] = test_case_file_id
 
         # if progress exited normally, then we should check output result
         run_result["output_md5"] = None
         run_result["output"] = None
         if run_result["result"] == _judger.RESULT_SUCCESS:
-            if self._test_case_info.get("spj"):
-                if not self._spj_config or not self._spj_version:
-                    raise JudgeClientError("spj_config or spj_version not set")
-
-                spj_result = self._spj(in_file_path=in_file, user_out_file_path=user_output_file)
-
-                if spj_result == SPJ_WA:
-                    run_result["result"] = _judger.RESULT_WRONG_ANSWER
-                elif spj_result == SPJ_ERROR:
-                    run_result["result"] = _judger.RESULT_SYSTEM_ERROR
-                    run_result["error"] = _judger.ERROR_SPJ_ERROR
+            if not os.path.exists(user_output_file):
+                run_result["result"] = _judger.RESULT_WRONG_ANSWER
             else:
-                run_result["output_md5"], is_ac = self._compare_output(test_case_file_id)
-                # -1 == Wrong Answer
-                if not is_ac:
-                    run_result["result"] = _judger.RESULT_WRONG_ANSWER
+                if self._test_case_info.get("spj"):
+                    if not self._spj_config or not self._spj_version:
+                        raise JudgeClientError("spj_config or spj_version not set")
+
+                    spj_result = self._spj(in_file_path=in_file, user_out_file_path=user_output_file)
+
+                    if spj_result == SPJ_WA:
+                        run_result["result"] = _judger.RESULT_WRONG_ANSWER
+                    elif spj_result == SPJ_ERROR:
+                        run_result["result"] = _judger.RESULT_SYSTEM_ERROR
+                        run_result["error"] = _judger.ERROR_SPJ_ERROR
+                else:
+                    run_result["output_md5"], is_ac = self._compare_output(test_case_file_id, user_output_file)
+                    # -1 == Wrong Answer
+                    if not is_ac:
+                        run_result["result"] = _judger.RESULT_WRONG_ANSWER
 
         if self._output:
             try:
