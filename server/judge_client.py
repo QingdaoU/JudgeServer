@@ -22,7 +22,7 @@ def _run(instance, test_case_file_id):
 
 class JudgeClient(object):
     def __init__(self, run_config, exe_path, max_cpu_time, max_memory, test_case_dir,
-                 submission_dir, spj_version, spj_config, io_mode, output=False):
+                 submission_dir, spj_version, spj_config, io_mode, test_case_score, output=False):
         self._run_config = run_config
         self._exe_path = exe_path
         self._max_cpu_time = max_cpu_time
@@ -38,6 +38,7 @@ class JudgeClient(object):
         self._spj_config = spj_config
         self._output = output
         self._io_mode = io_mode
+        self._test_case_score=test_case_score
 
         if self._spj_version and self._spj_config:
             self._spj_exe = os.path.join(SPJ_EXE_DIR,
@@ -58,19 +59,33 @@ class JudgeClient(object):
         return self._test_case_info["test_cases"][test_case_file_id]
 
     def _compare_output(self, test_case_file_id, user_output_file):
+        # todo feed slice
         with open(user_output_file, "rb") as f:
             content = f.read()
         output_md5 = hashlib.md5(content.rstrip()).hexdigest()
         result = output_md5 == self._get_test_case_file_info(test_case_file_id)["stripped_output_md5"]
         return output_md5, result
 
-    def _spj(self, in_file_path, user_out_file_path):
+    def _spj(self, in_file_path, input_name, out_file_path, user_out_file_path, user_output_dir):
         os.chown(self._submission_dir, SPJ_USER_UID, 0)
         os.chown(user_out_file_path, SPJ_USER_UID, 0)
         os.chmod(user_out_file_path, 0o740)
+        custom_score_file_path = os.path.join(user_output_dir, "custom_score")
+        extra_file_path = os.path.join(user_output_dir, "extra")
+        test_case_score = 0
+        for item in self._test_case_score:
+            if item["input_name"] == input_name:
+                test_case_score = item["score"]
+                break
+
         command = self._spj_config["command"].format(exe_path=self._spj_exe,
                                                      in_file_path=in_file_path,
-                                                     user_out_file_path=user_out_file_path).split(" ")
+                                                     out_file_path=out_file_path,
+                                                     user_output_dir=user_output_dir,
+                                                     user_out_file_path=user_out_file_path,
+                                                     score=test_case_score,
+                                                     custom_score_file_path=custom_score_file_path,
+                                                     extra_file_path=extra_file_path).split(" ")
         seccomp_rule_name = self._spj_config["seccomp_rule"]
         result = _judger.run(max_cpu_time=self._max_cpu_time * 3,
                              max_real_time=self._max_cpu_time * 9,
@@ -89,30 +104,49 @@ class JudgeClient(object):
                              uid=SPJ_USER_UID,
                              gid=SPJ_GROUP_GID)
 
-        if result["result"] == _judger.RESULT_SUCCESS or \
-                (result["result"] == _judger.RESULT_RUNTIME_ERROR and
-                 result["exit_code"] in [SPJ_WA, SPJ_ERROR] and result["signal"] == 0):
-            return result["exit_code"]
+        try:
+            with open(extra_file_path) as f:
+                extra = f.read()
+        except Exception:
+            extra = ""
+
+        try:
+            with open(custom_score_file_path) as f:
+                custom_score_content = f.read().strip()
+                custom_score = int(custom_score_content)
+        except Exception as e:
+            return {"result": SPJ_ERROR, "extra": "Failed to read custom score content: " + str(e) + "; " + extra, "score": 0}
+
+        if custom_score < 0 or custom_score > test_case_score:
+            return {"result": SPJ_ERROR, "extra": "Invalid custom score: " + str(custom_score) + "; Problem test case score is " + str(test_case_score) + "; " + extra,
+                    "score": 0}
+
+        if result["result"] == _judger.RESULT_SUCCESS:
+            if custom_score == test_case_score:
+                return {"result": SPJ_AC, "extra": extra, "score": custom_score}
+            else:
+                return {"result": SPJ_WA, "extra": extra, "score": custom_score}
         else:
-            return SPJ_ERROR
+            return {"result": SPJ_ERROR, "extra": "Special Judge failed, info: " + str(result) + "; " + extra, "score": 0}
 
     def _judge_one(self, test_case_file_id):
         test_case_info = self._get_test_case_file_info(test_case_file_id)
-        in_file = os.path.join(self._test_case_dir, test_case_info["input_name"])
+        input_name = test_case_info["input_name"]
+        in_file = os.path.join(self._test_case_dir, input_name)
+        user_output_dir = os.path.join(self._submission_dir, str(test_case_file_id))
+        os.mkdir(user_output_dir)
+        os.chown(user_output_dir, RUN_USER_UID, RUN_GROUP_GID)
+        os.chmod(user_output_dir, 0o711)
+        os.chdir(user_output_dir)
 
         if self._io_mode["io_mode"] == ProblemIOMode.file:
-            user_output_dir = os.path.join(self._submission_dir, str(test_case_file_id))
-            os.mkdir(user_output_dir)
-            os.chown(user_output_dir, RUN_USER_UID, RUN_GROUP_GID)
-            os.chmod(user_output_dir, 0o711)
-            os.chdir(user_output_dir)
             # todo check permission
             user_output_file = os.path.join(user_output_dir, self._io_mode["output"])
             real_user_output_file = os.path.join(user_output_dir, "stdio.txt")
             shutil.copyfile(in_file, os.path.join(user_output_dir, self._io_mode["input"]))
             kwargs = {"input_path": in_file, "output_path": real_user_output_file, "error_path": real_user_output_file}
         else:
-            real_user_output_file = user_output_file = os.path.join(self._submission_dir, test_case_file_id + ".out")
+            real_user_output_file = user_output_file = os.path.join(user_output_dir, test_case_file_id + ".out")
             kwargs = {"input_path": in_file, "output_path": real_user_output_file, "error_path": real_user_output_file}
 
         command = self._run_config["command"].format(exe_path=self._exe_path, exe_dir=os.path.dirname(self._exe_path),
@@ -151,13 +185,23 @@ class JudgeClient(object):
                     if not self._spj_config or not self._spj_version:
                         raise JudgeClientError("spj_config or spj_version not set")
 
-                    spj_result = self._spj(in_file_path=in_file, user_out_file_path=user_output_file)
+                    spj_result = self._spj(in_file_path=in_file,
+                                           input_name=input_name,
+                                           out_file_path=os.path.join(self._test_case_dir, test_case_info["output_name"]),
+                                           user_out_file_path=user_output_file,
+                                           user_output_dir=user_output_dir)
 
-                    if spj_result == SPJ_WA:
-                        run_result["result"] = _judger.RESULT_WRONG_ANSWER
-                    elif spj_result == SPJ_ERROR:
+                    if spj_result["result"] == SPJ_ERROR:
                         run_result["result"] = _judger.RESULT_SYSTEM_ERROR
                         run_result["error"] = _judger.ERROR_SPJ_ERROR
+                    elif spj_result["result"] == SPJ_AC:
+                        run_result["result"] = _judger.RESULT_SUCCESS
+                        run_result["error"] = _judger.RESULT_SUCCESS
+                    elif spj_result["result"] == SPJ_WA:
+                        run_result["result"] = _judger.RESULT_WRONG_ANSWER
+                        run_result["error"] = _judger.RESULT_SUCCESS
+                    run_result["extra"] = spj_result["extra"]
+                    run_result["score"] = spj_result["score"]
                 else:
                     run_result["output_md5"], is_ac = self._compare_output(test_case_file_id, user_output_file)
                     # -1 == Wrong Answer
