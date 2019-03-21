@@ -2,6 +2,7 @@ import _judger
 import hashlib
 import json
 import os
+import shutil
 from multiprocessing import Pool
 
 import psutil
@@ -108,7 +109,7 @@ class JudgeClient(object):
             # todo check permission
             user_output_file = os.path.join(user_output_dir, self._io_mode["output"])
             real_user_output_file = os.path.join(user_output_dir, "stdio.txt")
-            os.symlink(in_file, os.path.join(user_output_dir, self._io_mode["input"]))
+            shutil.copyfile(in_file, os.path.join(user_output_dir, self._io_mode["input"]))
             kwargs = {"input_path": in_file, "output_path": real_user_output_file, "error_path": real_user_output_file}
         else:
             real_user_output_file = user_output_file = os.path.join(self._submission_dir, test_case_file_id + ".out")
