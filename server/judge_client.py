@@ -68,10 +68,14 @@ class JudgeClient(object):
 
     def _spj(self, in_file_path, input_name, out_file_path, user_out_file_path, user_output_dir):
         os.chown(self._submission_dir, SPJ_USER_UID, 0)
-        os.chown(user_out_file_path, SPJ_USER_UID, 0)
-        os.chmod(user_out_file_path, 0o740)
         custom_score_file_path = os.path.join(user_output_dir, "custom_score")
         extra_file_path = os.path.join(user_output_dir, "extra")
+        open(custom_score_file_path, "w").close()
+        open(extra_file_path, "w").close()
+        for f in (custom_score_file_path, extra_file_path, user_out_file_path):
+            os.chown(f, SPJ_USER_UID, 0)
+            os.chmod(f, 0o740)
+
         test_case_score = 0
         for item in self._test_case_score:
             if item["input_name"] == input_name:
@@ -104,6 +108,9 @@ class JudgeClient(object):
                              uid=SPJ_USER_UID,
                              gid=SPJ_GROUP_GID)
 
+        if result["result"] != _judger.RESULT_SUCCESS:
+            return {"result": SPJ_ERROR, "extra": "Special Judge failed, info: " + str(result), "score": 0}
+
         try:
             with open(extra_file_path) as f:
                 extra = f.read()
@@ -121,13 +128,10 @@ class JudgeClient(object):
             return {"result": SPJ_ERROR, "extra": "Invalid custom score: " + str(custom_score) + "; Problem test case score is " + str(test_case_score) + "; " + extra,
                     "score": 0}
 
-        if result["result"] == _judger.RESULT_SUCCESS:
-            if custom_score == test_case_score:
-                return {"result": SPJ_AC, "extra": extra, "score": custom_score}
-            else:
-                return {"result": SPJ_WA, "extra": extra, "score": custom_score}
+        if custom_score == test_case_score:
+            return {"result": SPJ_AC, "extra": extra, "score": custom_score}
         else:
-            return {"result": SPJ_ERROR, "extra": "Special Judge failed, info: " + str(result) + "; " + extra, "score": 0}
+            return {"result": SPJ_WA, "extra": extra, "score": custom_score}
 
     def _judge_one(self, test_case_file_id):
         test_case_info = self._get_test_case_file_info(test_case_file_id)
