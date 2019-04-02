@@ -1,5 +1,4 @@
 FROM registry.docker-cn.com/library/ubuntu:16.04
-
 COPY build/java_policy /etc
 
 RUN buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
