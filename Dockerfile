@@ -1,4 +1,4 @@
-FROM registry.hub.docker.com/library/ubuntu:18.04
+FROM registry.hub.docker.com/library/ubuntu:16.04
 
 COPY build/java_policy /etc
 
