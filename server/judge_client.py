@@ -177,6 +177,7 @@ class JudgeClient(object):
                                  memory_limit_check_only=self._run_config.get("memory_limit_check_only", 0),
                                  **kwargs)
         run_result["test_case"] = test_case_file_id
+        run_result["score"] = 0
 
         # if progress exited normally, then we should check output result
         run_result["output_md5"] = None
