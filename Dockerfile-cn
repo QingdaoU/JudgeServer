@@ -4,7 +4,7 @@ COPY build/java_policy /etc
 
 RUN buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
     cp /etc/apt/sources.list /etc/apt/sources.list.bak && rm /etc/apt/sources.list && \
-    tee /etc/docker/daemon.json <<-'EOF' && \
+    tee /etc/apt/sources.list <<-'EOF' && \
     # deb cdrom:[Ubuntu 16.04 LTS _Xenial Xerus_ - Release amd64 (20160420.1)]/ xenial main restricted && \
     deb-src http://archive.ubuntu.com/ubuntu xenial main restricted #Added by software-properties && \
     deb http://mirrors.aliyun.com/ubuntu/ xenial main restricted && \
