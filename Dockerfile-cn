@@ -23,7 +23,7 @@ RUN buildDeps='software-properties-common git libtool cmake python-dev python3-p
     deb-src http://mirrors.aliyun.com/ubuntu/ xenial-security main restricted multiverse universe #Added by software-properties && \
     deb http://mirrors.aliyun.com/ubuntu/ xenial-security universe && \
     deb http://mirrors.aliyun.com/ubuntu/ xenial-security multiverse && \
-    EOF
+    EOF && \
     apt-get update && apt-get install -y python python3.5 python-pkg-resources python3-pkg-resources $buildDeps && \
     add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get install -y gcc-8 g++-8 && \
     rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
