@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y wget && wget https://raw.githubusercont
     rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
     pip3 install --upgrade pip && \
     cp /usr/bin/pip /usr/bin/pip3 && \
-    pip install --no-cache-dir psutil gunicorn flask requests idna -i https://mirrors.aliyun.com/pypi/simple/ && \
+    pip install --no-cache-dir psutil gunicorn flask requests -i https://mirrors.aliyun.com/pypi/simple/ && \
+    pip uninstall idna && pip install --no-cache-dir idna -i https://mirrors.aliyun.com/pypi/simple/ && \
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove wget $buildDeps && \
