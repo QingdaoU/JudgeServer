@@ -2,7 +2,7 @@ FROM registry.hub.docker.com/library/ubuntu:16.04
 
 COPY build/java_policy /etc
 
-RUN apt-get update && apt-get install -y wget && wget https://raw.githubusercontent.com/Harry-zklcdc/JudgeServer/master/sources.list && mv sources.list /etc/apt/source.list && \
+RUN apt-get update && apt-get install -y wget && wget https://raw.githubusercontent.com/Harry-zklcdc/JudgeServer/master/sources.list && mv sources.list /etc/apt/sources.list && \
     buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
     apt-get update && apt-get install -y python python3.5 python-pkg-resources python3-pkg-resources $buildDeps && \
     add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get install -y gcc-9 g++-9 && \
