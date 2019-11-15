@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y wget && wget https://raw.githubusercont
     apt-get update && apt-get install -y python python3.6 python-pkg-resources python3-pkg-resources gcc-8 g++-8 openjdk-8-jdk $buildDeps && \
     rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
     pip3 install --upgrade pip && \
-    rm /usr/bin/pip3 && ln -s /usr/bin/pip /usr/bin/pip3 && \
-    pip3 install --no-cache-dir psutil gunicorn flask requests -i https://mirrors.aliyun.com/pypi/simple/ && \
+    cp /usr/bin/pip /usr/bin/pip3 && \
+    pip install --no-cache-dir psutil gunicorn flask requests -i https://mirrors.aliyun.com/pypi/simple/ && \
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove wget $buildDeps && \
