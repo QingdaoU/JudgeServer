@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y wget && wget https://raw.githubusercont
     buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
     apt-get update && apt-get install -y python python3.5 python-pkg-resources python3-pkg-resources $buildDeps && \
     add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get install -y gcc-9 g++-9 && \
-    rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8.2 /usr/bin/gcc && ln -s /usr/bin/g++-8.2 /usr/bin/g++ && \
+    rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-9 /usr/bin/gcc && ln -s /usr/bin/g++-9 /usr/bin/g++ && \
     add-apt-repository ppa:openjdk-r/ppa && apt-get update && apt-get install -y openjdk-8-jdk && \
     pip3 install --no-cache-dir psutil gunicorn flask requests && \
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
