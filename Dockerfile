@@ -1,18 +1,19 @@
-FROM registry.hub.docker.com/library/ubuntu:16.04
+FROM ubuntu:18.04
 
 COPY build/java_policy /etc
 
-RUN buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
-    apt-get update && apt-get install -y python python3.5 python-pkg-resources python3-pkg-resources $buildDeps && \
-    add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get install -y gcc-9 g++-9 && \
-    rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-9 /usr/bin/gcc && ln -s /usr/bin/g++-9 /usr/bin/g++ && \
-    add-apt-repository ppa:openjdk-r/ppa && apt-get update && apt-get install -y openjdk-8-jdk && \
-    pip3 install --no-cache-dir psutil gunicorn flask requests && \
+RUN apt-get update && apt-get install -y wget && wget https://github.com/Harry-zklcdc/JudgeServer/raw/18.04/sources.list && mv sources18.04.list /etc/apt/sources.list && \
+    buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
+    apt-get update && apt-get install -y python python3.6 python-pkg-resources python3-pkg-resources gcc-8 g++-8 openjdk-8-jdk $buildDeps && \
+    rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
+    pip3 install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/ && cp /usr/bin/pip /usr/bin/pip3 && \
+    pip install --no-cache-dir psutil gunicorn flask requests -i https://mirrors.aliyun.com/pypi/simple/ && \
+    pip uninstall idna -y && pip install --no-cache-dir idna -i https://mirrors.aliyun.com/pypi/simple/ && \
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
-    apt-get purge -y --auto-remove $buildDeps && \
+    apt-get purge -y --auto-remove wget $buildDeps && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    ln -s /usr/bin/gcc-9 /usr/bin/gcc && ln -s /usr/bin/g++-9 /usr/bin/g++ && \
+    ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
     mkdir -p /code && \
     useradd -u 12001 compiler && useradd -u 12002 code && useradd -u 12003 spj && usermod -a -G code spj
 
