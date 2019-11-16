@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 COPY build/java_policy /etc
 
-RUN apt-get update && apt-get install -y wget && wget https://github.com/Harry-zklcdc/JudgeServer/raw/18.04/sources.list && mv sources18.04.list /etc/apt/sources.list && \
+RUN apt-get update && apt-get install -y wget && wget https://github.com/Harry-zklcdc/JudgeServer/raw/18.04/sources.list && mv sources.list /etc/apt/sources.list && \
     buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
     apt-get update && apt-get install -y python python3.6 python-pkg-resources python3-pkg-resources gcc-8 g++-8 openjdk-8-jdk $buildDeps && \
     rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
