@@ -2,7 +2,7 @@ FROM ubuntu:18.04
 
 COPY build/java_policy /etc
 
-RUN apt-get update && apt-get install -y wget && wget https://wenjian-backup.oss-cn-hangzhou.aliyuncs.com/sources.list?Expires=1579608019&OSSAccessKeyId=TMP.hhaWm6wyFkbcJR7xQFQVG5CWp2J2bYvNhJYkTBkotYMMZBAR58vKt7AvCg33nDhZ2zEAC5GtrYoHUH1osyNNL38GGRj9fCxGGPE6gQPDnPfJrZCo5v4VuTeQdUHN1n.tmp&Signature=LSniK7tE4rH4%2BVP5QSshTyDMHpM%3D && mv sources.list /etc/apt/sources.list && \
+RUN apt-get update && apt-get install -y wget && wget https://raw.githubusercontent.com/Harry-zklcdc/JudgeServer/18.04/sources.list && mv sources.list /etc/apt/sources.list && \
     buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
     apt-get update && apt-get install -y python python-pkg-resources python3-pkg-resources gcc-8 g++-8 openjdk-8-jdk $buildDeps && apt-get remove python3-idna -y && \
     rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
