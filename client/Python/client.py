@@ -3,7 +3,7 @@ import json
 
 import requests
 
-from languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, \
+from client.Python.languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, \
     c_lang_spj_compile, py2_lang_config, py3_lang_config
 
 
