@@ -6,7 +6,7 @@ COPY sources.list /etc/apt/sources.list
 RUN buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
     apt-get update && apt-get install -y python python-pkg-resources python3-pkg-resources openjdk-8-jdk $buildDeps && apt-get remove python3-idna -y && \
     pip3 install --no-cache-dir psutil gunicorn flask requests idna -i https://mirrors.aliyun.com/pypi/simple/ && \
-    cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
+    cd /tmp && git clone -b newnew  --depth 1 https://github.com/Harry-zklcdc/Judger && cd Judger && \
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove wget $buildDeps && \
     apt-get install -y gcc-8 g++-8 && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
