@@ -1,17 +1,16 @@
 FROM ubuntu:18.04
 
 COPY build/java_policy /etc
+COPY sources.list /etc/apt/sources.list
 
-RUN apt-get update && apt-get install -y wget && wget https://raw.githubusercontent.com/Harry-zklcdc/JudgeServer/18.04/sources.list && mv sources.list /etc/apt/sources.list && \
-    buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
-    apt-get update && apt-get install -y python python-pkg-resources python3-pkg-resources gcc-8 g++-8 openjdk-8-jdk $buildDeps && apt-get remove python3-idna -y && \
-    rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
+RUN buildDeps='software-properties-common git libtool cmake python-dev python3-pip python-pip libseccomp-dev' && \
+    apt-get update && apt-get install -y python python-pkg-resources python3-pkg-resources openjdk-8-jdk $buildDeps && apt-get remove python3-idna -y && \
     pip3 install --no-cache-dir psutil gunicorn flask requests idna -i https://mirrors.aliyun.com/pypi/simple/ && \
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove wget $buildDeps && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
+    apt-get install -y gcc-8 g++-8 && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
     mkdir -p /code && \
     useradd -u 12001 compiler && useradd -u 12002 code && useradd -u 12003 spj && usermod -a -G code spj
 
