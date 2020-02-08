@@ -9,8 +9,8 @@ RUN buildDeps='software-properties-common git libtool cmake python-dev python3-p
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove wget $buildDeps && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     apt-get install -y gcc-8 g++-8 && ln -s /usr/bin/gcc-8 /usr/bin/gcc && ln -s /usr/bin/g++-8 /usr/bin/g++ && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     mkdir -p /code && \
     useradd -u 12001 compiler && useradd -u 12002 code && useradd -u 12003 spj && usermod -a -G code spj
 
