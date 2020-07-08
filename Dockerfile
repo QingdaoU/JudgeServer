@@ -6,7 +6,7 @@ RUN buildDeps='software-properties-common git libtool cmake python-dev python3-p
     add-apt-repository ppa:ubuntu-toolchain-r/test && apt-get update && apt-get install -y gcc-9 g++-9 && \
     rm /usr/bin/gcc /usr/bin/g++ && ln -s /usr/bin/gcc-9 /usr/bin/gcc && ln -s /usr/bin/g++-9 /usr/bin/g++ && \
     add-apt-repository ppa:openjdk-r/ppa && add-apt-repository ppa:longsleep/golang-backports && apt-get update && apt-get install -y golang-go openjdk-8-jdk && \
-    pip3 install --no-cache-dir psutil gunicorn flask requests idna && \
+    pip3 install -I --no-cache-dir psutil gunicorn flask requests idna && \
     cd /tmp && git clone -b newnew  --depth 1 https://github.com/QingdaoU/Judger && cd Judger && \
     mkdir build && cd build && cmake .. && make && make install && cd ../bindings/Python && python3 setup.py install && \
     apt-get purge -y --auto-remove $buildDeps && \
