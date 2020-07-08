@@ -89,7 +89,7 @@ py2_lang_config = {
 py3_lang_config = {
     "compile": {
         "src_name": "solution.py",
-        "exe_name": "__pycache__/solution.cpython-35.pyc",
+        "exe_name": "__pycache__/solution.cpython-36.pyc",
         "max_cpu_time": 3000,
         "max_real_time": 5000,
         "max_memory": 128 * 1024 * 1024,
@@ -99,5 +99,24 @@ py3_lang_config = {
         "command": "/usr/bin/python3 {exe_path}",
         "seccomp_rule": "general",
         "env": ["PYTHONIOENCODING=UTF-8"] + default_env
+    }
+}
+
+go_lang_config = {
+    "compile": {
+        "src_name": "main.go",
+        "exe_name": "main",
+        "max_cpu_time": 3000,
+        "max_real_time": 5000,
+        "max_memory": 1024 * 1024 * 1024,
+        "compile_command": "/usr/bin/go build -o {exe_path} {src_path}",
+        "env": ["GOCACHE=/tmp"]
+    },
+    "run": {
+        "command": "{exe_path}",
+        "seccomp_rule": "",
+        # 降低内存占用
+        "env": ["GODEBUG=madvdontneed=1", "GOCACHE=off"] + default_env,
+        "memory_limit_check_only": 1
     }
 }
