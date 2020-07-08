@@ -1,7 +1,7 @@
 version: "3"
 services:
     judge_server:
-        image: registry.cn-hangzhou.aliyuncs.com/wenjian_oj/judgeserver
+        image: zklcdc/judgeserver
         read_only: true
         cap_drop:
             - SETPCAP
