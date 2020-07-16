@@ -111,9 +111,10 @@ print(int(s1[0]) + int(s1[1]))"""
 import "fmt"
 
 func main() {
-    int a, b;
-    fmt.Scanf("%d %d", &a, &b);
-    fmt.Print("%d", a + b)
+    a := 0
+    b := 0
+    fmt.Scanf("%d %d", &a, &b)
+    fmt.Printf("%d", a + b)
 }"""
 
     client = JudgeServerClient(token=token, server_base_url="http://127.0.0.1:12358")
