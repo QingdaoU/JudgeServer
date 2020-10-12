@@ -112,14 +112,14 @@ var PY2LangConfig = &LangConfig{
 var PY3LangConfig = &LangConfig{
 	CompileConfig: CompileConfig{
 		SrcName:        "solution.py",
-		ExeName:        "__pycache__/solution.cpython-35.pyc",
+		ExeName:        "__pycache__/solution.cpython-37.pyc",
 		MaxCpuTime:     3000,
 		MaxRealTime:    5000,
 		MaxMemory:      128 * 1024 * 1024,
-		CompileCommand: "/usr/bin/python3 -m py_compile {src_path}",
+		CompileCommand: "/usr/bin/python3.7 -m py_compile {src_path}",
 	},
 	RunConfig: RunConfig{
-		Command:     "/usr/bin/python3 {exe_path}",
+		Command:     "/usr/bin/python3.7 {exe_path}",
 		SeccompRule: "general",
 		Env:         append(DefaultEnv, "PYTHONIOENCODING=UTF-8"),
 	},
