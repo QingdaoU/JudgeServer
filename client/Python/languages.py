@@ -110,7 +110,7 @@ go_lang_config = {
         "max_real_time": 5000,
         "max_memory": 1024 * 1024 * 1024,
         "compile_command": "/usr/bin/go build -o {exe_path} {src_path}",
-        "env": ["GOCACHE=/tmp"]
+        "env": ["GOCACHE=/tmp", "GOPATH=/tmp/go"]
     },
     "run": {
         "command": "{exe_path}",
@@ -118,5 +118,14 @@ go_lang_config = {
         # 降低内存占用
         "env": ["GODEBUG=madvdontneed=1", "GOCACHE=off"] + default_env,
         "memory_limit_check_only": 1
+    }
+}
+
+php_lang_config = {
+    "run": {
+        "exe_name": "solution.php",
+        "command": "/usr/bin/php {exe_path}",
+        "seccomp_rule": "",
+        "env": default_env
     }
 }

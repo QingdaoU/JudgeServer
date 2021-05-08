@@ -4,7 +4,7 @@ import json
 import requests
 
 from languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, \
-    c_lang_spj_compile, py2_lang_config, py3_lang_config, go_lang_config
+    c_lang_spj_compile, py2_lang_config, py3_lang_config, go_lang_config, php_lang_config
 
 
 class JudgeServerClientError(Exception):
@@ -117,6 +117,10 @@ func main() {
     fmt.Printf("%d", a + b)
 }"""
 
+    php_src = """<?php
+fscanf(STDIN, "%d %d", $a, $b);
+print($a + $b);"""
+
     client = JudgeServerClient(token=token, server_base_url="http://127.0.0.1:12358")
     print("ping")
     print(client.ping(), "\n\n")
@@ -160,6 +164,11 @@ func main() {
 
     print("go_judge")
     print(client.judge(src=go_src, language_config=go_lang_config,
+                       max_cpu_time=1000, max_memory=128 * 1024 * 1024,
+                       test_case_id="normal", output=True), "\n\n")
+
+    print("php_judge")
+    print(client.judge(src=php_src, language_config=php_lang_config,
                        max_cpu_time=1000, max_memory=128 * 1024 * 1024,
                        test_case_id="normal", output=True), "\n\n")
 
