@@ -3,8 +3,7 @@ import json
 
 import requests
 
-from .languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, \
-    c_lang_spj_compile, py2_lang_config, py3_lang_config, go_lang_config, php_lang_config
+from .languages import c_lang_config, cpp_lang_config, java_lang_config, c_lang_spj_config, c_lang_spj_compile, py2_lang_config, py3_lang_config, go_lang_config, php_lang_config, js_lang_config
 
 
 class JudgeServerClientError(Exception):
@@ -121,6 +120,16 @@ func main() {
 fscanf(STDIN, "%d %d", $a, $b);
 print($a + $b);"""
 
+    js_src = """const readline = require('readline');
+const rl = readline.createInterface({ input: process.stdin });
+rl.on('line', (input) => {
+  if (input === '') {
+    return rl.close();
+  }
+  const [a, b] = input.split(' ').map(Number)
+  console.log(a + b);
+});"""
+
     client = JudgeServerClient(token=token, server_base_url="http://127.0.0.1:12358")
     print("ping")
     print(client.ping(), "\n\n")
@@ -151,7 +160,6 @@ print($a + $b);"""
                        spj_version="3", spj_config=c_lang_spj_config,
                        spj_compile_config=c_lang_spj_compile, spj_src=c_spj_src), "\n\n")
 
-
     print("py2_judge")
     print(client.judge(src=py2_src, language_config=py2_lang_config,
                        max_cpu_time=1000, max_memory=128 * 1024 * 1024,
@@ -169,6 +177,11 @@ print($a + $b);"""
 
     print("php_judge")
     print(client.judge(src=php_src, language_config=php_lang_config,
+                       max_cpu_time=1000, max_memory=128 * 1024 * 1024,
+                       test_case_id="normal", output=True), "\n\n")
+
+    print("js_judge")
+    print(client.judge(src=js_src, language_config=js_lang_config,
                        max_cpu_time=1000, max_memory=128 * 1024 * 1024,
                        test_case_id="normal", output=True), "\n\n")
 

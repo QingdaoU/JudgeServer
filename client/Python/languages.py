@@ -126,6 +126,17 @@ php_lang_config = {
         "exe_name": "solution.php",
         "command": "/usr/bin/php {exe_path}",
         "seccomp_rule": "",
-        "env": default_env
+        "env": default_env,
+        "memory_limit_check_only": 1
+    }
+}
+
+js_lang_config = {
+    "run": {
+        "exe_name": "solution.js",
+        "command": "/usr/bin/node {exe_path}",
+        "seccomp_rule": "",
+        "env": ["NO_COLOR=true"] + default_env,
+        "memory_limit_check_only": 1
     }
 }
