@@ -1,3 +1,3 @@
 # JudgeServer
 
-[Document](http://docs.onlinejudge.me/)
+[Document](http://opensource.qduoj.com/)
