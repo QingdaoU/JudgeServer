@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/bin/sh
+set -ex
+
 rm -rf /judger/*
 mkdir -p /judger/run /judger/spj
 
@@ -8,6 +10,11 @@ chmod 711 /judger/run
 chown compiler:spj /judger/spj
 chmod 710 /judger/spj
 
-core=$(grep --count ^processor /proc/cpuinfo)
-n=$(($core*2))
-exec gunicorn --workers $n --threads $n --error-logfile /log/gunicorn.log --time 600 --bind 0.0.0.0:8080 server:app
+CPU_CORE_NUM="$(nproc)"
+if [ "$CPU_CORE_NUM" -lt 2 ]; then
+    export WORKER_NUM=2;
+else
+    export WORKER_NUM="$CPU_CORE_NUM";
+fi
+
+exec .venv/bin/gunicorn server:app --workers $WORKER_NUM --threads 4 --error-logfile /log/gunicorn.log --bind 0.0.0.0:8080
