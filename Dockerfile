@@ -117,6 +117,6 @@ java -version
 node --version
 EOS
 
-HEALTHCHECK CMD [ '/app/.venv/bin/python3', '/app/service.py' ]
+HEALTHCHECK --interval=5s CMD [ "/app/.venv/bin/python3", "/app/service.py" ]
 EXPOSE 8080
 ENTRYPOINT [ "/app/entrypoint.sh" ]
