@@ -1,4 +1,6 @@
 FROM debian:trixie-slim AS builder
+ARG TARGETARCH
+ARG TARGETVARIANT
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
@@ -32,6 +34,8 @@ python3 -m venv .venv
 EOS
 
 FROM debian:trixie-slim
+ARG TARGETARCH
+ARG TARGETVARIANT
 
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /app
