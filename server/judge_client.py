@@ -45,8 +45,6 @@ class JudgeClient(object):
             if not os.path.exists(self._spj_exe):
                 raise JudgeClientError("spj exe not found")
 
-        self._pool = Pool(processes=psutil.cpu_count())
-
     def _load_test_case_info(self):
         try:
             with open(os.path.join(self._test_case_dir, "info")) as f:
@@ -180,22 +178,17 @@ class JudgeClient(object):
     def run(self):
         tmp_result = []
         result = []
+        pool = Pool(processes=psutil.cpu_count())
         try:
             for test_case_file_id, _ in self._test_case_info["test_cases"].items():
-                tmp_result.append(self._pool.apply_async(_run, (self, test_case_file_id)))
+                tmp_result.append(pool.apply_async(_run, (self, test_case_file_id)))
         except Exception as e:
             raise e
         finally:
-            self._pool.close()
-            self._pool.join()
+            pool.close()
+            pool.join()
         for item in tmp_result:
             # exception will be raised, when get() is called
-            # # http://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing
+            # http://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing
             result.append(item.get())
         return result
-
-    def __getstate__(self):
-        # http://stackoverflow.com/questions/25382455/python-notimplementederror-pool-objects-cannot-be-passed-between-processes
-        self_dict = self.__dict__.copy()
-        del self_dict["_pool"]
-        return self_dict
