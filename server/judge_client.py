@@ -32,7 +32,6 @@ class JudgeClient(object):
         self._test_case_dir = test_case_dir
         self._submission_dir = submission_dir
 
-        self._pool = Pool(processes=psutil.cpu_count())
         self._test_case_info = self._load_test_case_info()
 
         self._spj_version = spj_version
@@ -179,18 +178,17 @@ class JudgeClient(object):
     def run(self):
         tmp_result = []
         result = []
-        for test_case_file_id, _ in self._test_case_info["test_cases"].items():
-            tmp_result.append(self._pool.apply_async(_run, (self, test_case_file_id)))
-        self._pool.close()
-        self._pool.join()
+        pool = Pool(processes=psutil.cpu_count())
+        try:
+            for test_case_file_id, _ in self._test_case_info["test_cases"].items():
+                tmp_result.append(pool.apply_async(_run, (self, test_case_file_id)))
+        except Exception as e:
+            raise e
+        finally:
+            pool.close()
+            pool.join()
         for item in tmp_result:
             # exception will be raised, when get() is called
-            # # http://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing
+            # http://stackoverflow.com/questions/22094852/how-to-catch-exceptions-in-workers-in-multiprocessing
             result.append(item.get())
         return result
-
-    def __getstate__(self):
-        # http://stackoverflow.com/questions/25382455/python-notimplementederror-pool-objects-cannot-be-passed-between-processes
-        self_dict = self.__dict__.copy()
-        del self_dict["_pool"]
-        return self_dict
